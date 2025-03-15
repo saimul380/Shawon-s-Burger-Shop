@@ -47,11 +47,26 @@ const safeHandler = (fn) => async (req, res, next) => {
 };
 
 // Set up minimal API routes that work without DB
-app.use('/api/auth', (req, res) => {
-    res.status(503).json({ 
-        error: 'Service Unavailable', 
-        message: 'Authentication services temporarily unavailable' 
-    });
+app.use('/api/auth', async (req, res, next) => {
+    try {
+        // Even if DB isn't connected yet, try to use the real auth handlers
+        // This allows login/signup to work once DB connects
+        const authRoutes = require('./routes/auth');
+        
+        // Create a mini express router just for this request
+        const router = express.Router();
+        router.use('/', authRoutes);
+        
+        // Process the request with the auth routes
+        router(req, res, next);
+    } catch (error) {
+        console.error('Auth route error:', error);
+        res.status(503).json({ 
+            error: 'Service Unavailable', 
+            message: 'Authentication services temporarily unavailable',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
 });
 
 app.use('/api/orders', (req, res) => {
