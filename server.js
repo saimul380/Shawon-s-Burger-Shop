@@ -120,7 +120,7 @@ app.get('/test-admin-login', async (req, res) => {
         const admin = new User({
             name: 'Admin User',
             email: 'admin@shawonburger.com',
-            password: 'admin123', // Will be hashed by the pre-save hook
+            password: hashedPassword, // Use pre-hashed password to bypass potential hook issues
             phone: '1234567890',
             address: 'Admin Address',
             role: 'admin'
