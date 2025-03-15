@@ -55,16 +55,35 @@ const connectDB = async (retries = 5) => {
         throw new Error('MONGODB_URI environment variable is not set');
     }
 
+    mongoose.set('strictQuery', false);
+
     for (let i = 0; i < retries; i++) {
         try {
             await mongoose.connect(mongoURI, {
                 useNewUrlParser: true,
                 useUnifiedTopology: true,
-                serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
-                socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
+                serverSelectionTimeoutMS: 10000,
+                socketTimeoutMS: 45000,
+                family: 4,
+                maxPoolSize: 10,
+                minPoolSize: 2,
+                maxIdleTimeMS: 30000,
+                connectTimeoutMS: 10000
             });
             
             console.log('Connected to MongoDB successfully');
+            mongoose.connection.on('error', err => {
+                console.error('MongoDB connection error:', err);
+            });
+
+            mongoose.connection.on('disconnected', () => {
+                console.log('MongoDB disconnected. Attempting to reconnect...');
+            });
+
+            mongoose.connection.on('reconnected', () => {
+                console.log('MongoDB reconnected successfully');
+            });
+
             await createAdminUser();
             return true;
         } catch (err) {
@@ -125,6 +144,20 @@ async function startServer() {
             console.log(`Server is running on port ${PORT}`);
             console.log(`Environment: ${process.env.NODE_ENV}`);
         });
+
+        // Handle process termination
+        process.on('SIGTERM', () => {
+            console.log('Received SIGTERM. Performing graceful shutdown...');
+            mongoose.connection.close();
+            process.exit(0);
+        });
+
+        process.on('SIGINT', () => {
+            console.log('Received SIGINT. Performing graceful shutdown...');
+            mongoose.connection.close();
+            process.exit(0);
+        });
+
     } catch (error) {
         console.error('Failed to start server:', error);
         process.exit(1);
