@@ -3,6 +3,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
+const compression = require('compression');
 const authRoutes = require('./routes/auth');
 const orderRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
@@ -13,6 +14,7 @@ const app = express();
 
 // Middleware
 app.use(cors());
+app.use(compression()); 
 app.use(express.json());
 
 // Serve static files
