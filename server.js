@@ -14,7 +14,10 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname)));
+
+// Serve static files
+app.use(express.static(__dirname));
+app.use('/temp', express.static(path.join(__dirname, 'temp')));
 
 // Create temp directory for exports if it doesn't exist
 const fs = require('fs');
@@ -74,13 +77,13 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Routes
+// API Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
 app.use('/api', reviewRoutes);
 
-// Serve static files
+// Serve HTML files
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -89,13 +92,19 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-// Handle 404
-app.use((req, res) => {
-    res.status(404).json({ error: 'Not Found' });
+// Handle all other routes by serving index.html (for client-side routing)
+app.get('*', (req, res) => {
+    if (req.path.startsWith('/api')) {
+        res.status(404).json({ error: 'API endpoint not found' });
+    } else {
+        res.sendFile(path.join(__dirname, 'index.html'));
+    }
 });
 
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
+    console.log(`MongoDB URI: ${process.env.MONGODB_URI ? 'Set' : 'Not Set'}`);
+    console.log(`Environment: ${process.env.NODE_ENV}`);
 });
