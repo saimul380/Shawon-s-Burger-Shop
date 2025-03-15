@@ -3,510 +3,178 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard - Shawon's Burger Shop</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="admin-styles.css">
+    <title>Admin Panel - Shawon's Burger Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+        }
+        .admin-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .card {
+            margin-bottom: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        .navbar-brand {
+            font-weight: bold;
+            color: #e74c3c;
+        }
+        .login-container {
+            max-width: 500px;
+            margin: 100px auto;
+            padding: 30px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
+        }
+        #messageContainer {
+            margin-bottom: 20px;
+            display: none;
+        }
+    </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <!-- Sidebar -->
-            <nav id="sidebar" class="col-md-3 col-lg-2 d-md-block bg-dark sidebar collapse no-print">
-                <div class="position-sticky pt-3">
-                    <div class="text-center mb-4">
-                        <img src="logo.png" alt="Logo" class="img-fluid rounded-circle mb-2" style="width: 80px;">
-                        <h6 class="text-white">Shawon's Burger Shop</h6>
-                    </div>
-                    <ul class="nav flex-column">
-                        <li class="nav-item">
-                            <a class="nav-link active text-white" href="#dashboard">
-                                <i class="fas fa-home me-2"></i>Dashboard
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="#orders">
-                                <i class="fas fa-shopping-cart me-2"></i>Orders
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="#menu">
-                                <i class="fas fa-utensils me-2"></i>Menu Items
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="#deals">
-                                <i class="fas fa-percentage me-2"></i>Special Deals
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="#reviews">
-                                <i class="fas fa-star me-2"></i>Reviews
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="#delivery">
-                                <i class="fas fa-truck me-2"></i>Delivery Zones
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="#analytics">
-                                <i class="fas fa-chart-bar me-2"></i>Analytics
-                            </a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-white" href="#settings">
-                                <i class="fas fa-cog me-2"></i>Settings
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-            </nav>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="/">🍔 Shawon's Burger Shop</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/">Home</a>
+                    </li>
+                    <li class="nav-item" id="logoutBtnContainer" style="display: none;">
+                        <button id="logoutBtn" class="btn btn-outline-danger">Logout</button>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
 
-            <!-- Main content -->
-            <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
-                <!-- Dashboard Header -->
-                <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
-                    <h1 class="h2">Dashboard</h1>
-                    <div class="btn-toolbar mb-2 mb-md-0 no-print">
-                        <div class="me-2">
-                            <select class="form-select" id="dateRangeFilter">
-                                <option value="today">Today</option>
-                                <option value="week">This Week</option>
-                                <option value="month">This Month</option>
-                                <option value="year">This Year</option>
-                            </select>
-                        </div>
-                        <div class="btn-group me-2">
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="exportDashboard">
-                                Export PDF
-                            </button>
-                            <button type="button" class="btn btn-sm btn-outline-secondary" id="printDashboard">
-                                Print
-                            </button>
+    <div class="container mt-4">
+        <!-- Message Container for notifications -->
+        <div id="messageContainer" class="alert"></div>
+        
+        <!-- Login Container -->
+        <div id="loginContainer" class="login-container">
+            <h2 class="text-center mb-4">Admin Login</h2>
+            <form id="adminLoginForm">
+                <div class="mb-3">
+                    <label for="adminEmail" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="adminEmail" required>
+                </div>
+                <div class="mb-3">
+                    <label for="adminPassword" class="form-label">Password</label>
+                    <input type="password" class="form-control" id="adminPassword" required>
+                </div>
+                <div class="d-grid gap-2">
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </div>
+            </form>
+            <div class="mt-3 text-center">
+                <p>Default admin credentials:</p>
+                <p><strong>Email:</strong> admin@shawonburger.com</p>
+                <p><strong>Password:</strong> admin123</p>
+            </div>
+        </div>
+        
+        <!-- Admin Panel -->
+        <div id="adminPanel" style="display: none;">
+            <div class="row">
+                <div class="col-md-12 mb-4">
+                    <div class="card">
+                        <div class="card-body">
+                            <h3>Welcome, <span id="adminName">Admin</span>!</h3>
+                            <p>You are logged in as an administrator. You can manage orders, menus, and user accounts here.</p>
                         </div>
                     </div>
                 </div>
-
-                <!-- Dashboard Overview -->
-                <div class="row mb-4">
-                    <div class="col-md-3">
-                        <div class="card text-white bg-primary">
-                            <div class="card-body">
-                                <h5 class="card-title">Today's Orders</h5>
-                                <h2 class="card-text" id="todayOrders">0</h2>
-                                <small>+12% from yesterday</small>
-                            </div>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Recent Orders</h5>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-white bg-success">
-                            <div class="card-body">
-                                <h5 class="card-title">Revenue</h5>
-                                <h2 class="card-text" id="todayRevenue">৳0</h2>
-                                <small>+5% from yesterday</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-white bg-warning">
-                            <div class="card-body">
-                                <h5 class="card-title">Pending Orders</h5>
-                                <h2 class="card-text" id="pendingOrders">0</h2>
-                                <small>Updated just now</small>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="card text-white bg-info">
-                            <div class="card-body">
-                                <h5 class="card-title">Total Customers</h5>
-                                <h2 class="card-text" id="totalCustomers">0</h2>
-                                <small>Lifetime customers</small>
+                        <div class="card-body">
+                            <div id="ordersContainer">
+                                <p>Loading orders...</p>
                             </div>
                         </div>
                     </div>
                 </div>
-
-                <!-- Recent Orders -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <i class="fas fa-table me-1"></i>
-                        Recent Orders
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-striped table-sm" id="recentOrdersTable">
-                                <thead>
-                                    <tr>
-                                        <th>Order ID</th>
-                                        <th>Customer</th>
-                                        <th>Items</th>
-                                        <th>Total</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="recentOrdersList"></tbody>
-                            </table>
+                
+                <div class="col-md-6 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-success text-white">
+                            <h5 class="mb-0">Statistics</h5>
                         </div>
-                    </div>
-                </div>
-
-                <!-- Sales Chart -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <i class="fas fa-chart-area me-1"></i>
-                        Sales Overview
-                    </div>
-                    <div class="card-body">
-                        <canvas id="salesChart"></canvas>
-                    </div>
-                </div>
-
-                <!-- Popular Items -->
-                <div class="row">
-                    <div class="col-lg-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <i class="fas fa-chart-pie me-1"></i>
-                                Popular Items
-                            </div>
-                            <div class="card-body">
-                                <canvas id="popularItemsChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="card mb-4">
-                            <div class="card-header">
-                                <i class="fas fa-map-marker-alt me-1"></i>
-                                Delivery Heat Map
-                            </div>
-                            <div class="card-body">
-                                <canvas id="deliveryHeatMap"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Reviews Management Section -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-star me-1"></i>
-                                Customer Reviews
-                            </div>
-                            <div class="d-flex gap-2">
-                                <select class="form-select form-select-sm" id="reviewFilter">
-                                    <option value="all">All Reviews</option>
-                                    <option value="5">5 Stars</option>
-                                    <option value="4">4 Stars</option>
-                                    <option value="3">3 Stars</option>
-                                    <option value="2">2 Stars</option>
-                                    <option value="1">1 Star</option>
-                                </select>
-                                <button class="btn btn-sm btn-outline-secondary" id="exportReviews">
-                                    <i class="fas fa-download me-1"></i>Export
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row mb-4">
-                            <div class="col-md-3">
-                                <div class="card bg-light">
-                                    <div class="card-body text-center">
-                                        <h2 class="mb-0" id="avgRating">4.5</h2>
-                                        <div class="text-warning mb-2">
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star"></i>
-                                            <i class="fas fa-star-half-alt"></i>
+                        <div class="card-body">
+                            <div id="statsContainer">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <h3 id="totalOrders">0</h3>
+                                                <p class="mb-0">Total Orders</p>
+                                            </div>
                                         </div>
-                                        <div class="text-muted">Average Rating</div>
                                     </div>
-                                </div>
-                            </div>
-                            <div class="col-md-9">
-                                <div class="rating-bars">
-                                    <div class="d-flex align-items-center mb-2">
-                                        <div class="text-muted me-2">5★</div>
-                                        <div class="progress flex-grow-1" style="height: 8px;">
-                                            <div class="progress-bar bg-warning" style="width: 65%"></div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <h3 id="totalRevenue">৳0</h3>
+                                                <p class="mb-0">Total Revenue</p>
+                                            </div>
                                         </div>
-                                        <div class="ms-2">65%</div>
                                     </div>
-                                    <div class="d-flex align-items-center mb-2">
-                                        <div class="text-muted me-2">4★</div>
-                                        <div class="progress flex-grow-1" style="height: 8px;">
-                                            <div class="progress-bar bg-warning" style="width: 20%"></div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <h3 id="totalUsers">0</h3>
+                                                <p class="mb-0">Registered Users</p>
+                                            </div>
                                         </div>
-                                        <div class="ms-2">20%</div>
                                     </div>
-                                    <div class="d-flex align-items-center mb-2">
-                                        <div class="text-muted me-2">3★</div>
-                                        <div class="progress flex-grow-1" style="height: 8px;">
-                                            <div class="progress-bar bg-warning" style="width: 10%"></div>
+                                    <div class="col-md-6 mb-3">
+                                        <div class="card bg-light">
+                                            <div class="card-body text-center">
+                                                <h3 id="totalMenuItems">0</h3>
+                                                <p class="mb-0">Menu Items</p>
+                                            </div>
                                         </div>
-                                        <div class="ms-2">10%</div>
-                                    </div>
-                                    <div class="d-flex align-items-center mb-2">
-                                        <div class="text-muted me-2">2★</div>
-                                        <div class="progress flex-grow-1" style="height: 8px;">
-                                            <div class="progress-bar bg-warning" style="width: 3%"></div>
-                                        </div>
-                                        <div class="ms-2">3%</div>
-                                    </div>
-                                    <div class="d-flex align-items-center">
-                                        <div class="text-muted me-2">1★</div>
-                                        <div class="progress flex-grow-1" style="height: 8px;">
-                                            <div class="progress-bar bg-warning" style="width: 2%"></div>
-                                        </div>
-                                        <div class="ms-2">2%</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-
-                        <!-- Reviews Table -->
-                        <div class="table-responsive">
-                            <table class="table table-hover" id="reviewsTable">
-                                <thead>
-                                    <tr>
-                                        <th>Customer</th>
-                                        <th>Rating</th>
-                                        <th>Review</th>
-                                        <th>Date</th>
-                                        <th>Helpful</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody id="reviewsTableBody"></tbody>
-                            </table>
-                        </div>
-
-                        <!-- Pagination -->
-                        <nav aria-label="Reviews pagination">
-                            <ul class="pagination justify-content-center" id="reviewsPagination">
-                                <li class="page-item disabled">
-                                    <a class="page-link" href="#" tabindex="-1">Previous</a>
-                                </li>
-                                <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                <li class="page-item"><a class="page-link" href="#">2</a></li>
-                                <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                <li class="page-item">
-                                    <a class="page-link" href="#">Next</a>
-                                </li>
-                            </ul>
-                        </nav>
                     </div>
                 </div>
-
-                <!-- Combo Deals Management Section -->
-                <div class="card mb-4">
-                    <div class="card-header">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <i class="fas fa-percentage me-1"></i>
-                                Combo Deals Management
-                            </div>
-                            <button class="btn btn-sm btn-primary" id="addComboBtn">
-                                <i class="fas fa-plus me-1"></i>Add New Combo
-                            </button>
+                
+                <div class="col-md-12 mb-4">
+                    <div class="card">
+                        <div class="card-header bg-info text-white">
+                            <h5 class="mb-0">Menu Management</h5>
                         </div>
-                    </div>
-                    <div class="card-body">
-                        <div class="table-responsive">
-                            <table class="table table-hover" id="comboDealsTable">
-                                <thead>
-                                    <tr>
-                                        <th>Combo Name</th>
-                                        <th>Items</th>
-                                        <th>Original Price</th>
-                                        <th>Discounted Price</th>
-                                        <th>Savings</th>
-                                        <th>Status</th>
-                                        <th>Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td>Student Special Combo</td>
-                                        <td>
-                                            <ul class="list-unstyled mb-0">
-                                                <li>1x Classic Burger</li>
-                                                <li>1x Regular Fries</li>
-                                                <li>1x Cold Drink (400ml)</li>
-                                            </ul>
-                                        </td>
-                                        <td>৳350</td>
-                                        <td>৳260</td>
-                                        <td>25%</td>
-                                        <td><span class="badge bg-success">Active</span></td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <button class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Family Pizza Feast</td>
-                                        <td>
-                                            <ul class="list-unstyled mb-0">
-                                                <li>2x Large Pizza (Any)</li>
-                                                <li>1x Garlic Bread</li>
-                                                <li>1x 2L Cold Drink</li>
-                                                <li>2x Dips</li>
-                                            </ul>
-                                        </td>
-                                        <td>৳1800</td>
-                                        <td>৳1260</td>
-                                        <td>30%</td>
-                                        <td><span class="badge bg-success">Active</span></td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <button class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td>Burger Lovers Duo</td>
-                                        <td>
-                                            <ul class="list-unstyled mb-0">
-                                                <li>2x Signature Burger</li>
-                                                <li>2x Regular Fries</li>
-                                                <li>2x Cold Drink (400ml)</li>
-                                            </ul>
-                                        </td>
-                                        <td>৳750</td>
-                                        <td>৳600</td>
-                                        <td>20%</td>
-                                        <td><span class="badge bg-success">Active</span></td>
-                                        <td>
-                                            <div class="btn-group">
-                                                <button class="btn btn-sm btn-outline-primary">
-                                                    <i class="fas fa-edit"></i>
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger">
-                                                    <i class="fas fa-trash"></i>
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add/Edit Combo Modal -->
-                <div class="modal fade" id="comboModal" tabindex="-1">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title">Add New Combo Deal</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body">
-                                <form id="comboForm">
-                                    <div class="mb-3">
-                                        <label class="form-label">Combo Name</label>
-                                        <input type="text" class="form-control" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Items</label>
-                                        <div id="comboItems">
-                                            <div class="row mb-2">
-                                                <div class="col-6">
-                                                    <select class="form-select">
-                                                        <option value="">Select Item</option>
-                                                        <optgroup label="Burgers">
-                                                            <option value="Classic Burger">Classic Burger</option>
-                                                            <option value="Spicy Jalapeño">Spicy Jalapeño</option>
-                                                            <option value="Triple Stack">Triple Stack</option>
-                                                        </optgroup>
-                                                        <optgroup label="Pizzas">
-                                                            <option value="Margherita">Margherita</option>
-                                                            <option value="Buffalo Chicken">Buffalo Chicken</option>
-                                                            <option value="BBQ Chicken">BBQ Chicken</option>
-                                                        </optgroup>
-                                                        <optgroup label="Drinks">
-                                                            <option value="Cold Drink">Cold Drink</option>
-                                                            <option value="Fresh Juice">Fresh Juice</option>
-                                                            <option value="Special Drinks">Special Drinks</option>
-                                                        </optgroup>
-                                                    </select>
-                                                </div>
-                                                <div class="col-4">
-                                                    <input type="number" class="form-control" placeholder="Quantity" min="1">
-                                                </div>
-                                                <div class="col-2">
-                                                    <button type="button" class="btn btn-outline-danger">
-                                                        <i class="fas fa-times"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="addItemBtn">
-                                            <i class="fas fa-plus me-1"></i>Add Item
-                                        </button>
-                                    </div>
-                                    <div class="row">
-                                        <div class="col-md-4">
-                                            <div class="mb-3">
-                                                <label class="form-label">Original Price (৳)</label>
-                                                <input type="number" class="form-control" required>
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="mb-3">
-                                                <label class="form-label">Discount (%)</label>
-                                                <input type="number" class="form-control" required min="0" max="100">
-                                            </div>
-                                        </div>
-                                        <div class="col-md-4">
-                                            <div class="mb-3">
-                                                <label class="form-label">Status</label>
-                                                <select class="form-select">
-                                                    <option value="active">Active</option>
-                                                    <option value="inactive">Inactive</option>
-                                                    <option value="scheduled">Scheduled</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label class="form-label">Description</label>
-                                        <textarea class="form-control" rows="3"></textarea>
-                                    </div>
-                                </form>
-                            </div>
-                            <div class="modal-footer">
-                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                <button type="button" class="btn btn-primary" id="saveComboBtn">Save Combo</button>
+                        <div class="card-body">
+                            <button class="btn btn-primary mb-3" id="addItemBtn">Add New Item</button>
+                            <div id="menuItemsContainer">
+                                <p>Loading menu items...</p>
                             </div>
                         </div>
                     </div>
                 </div>
-            </main>
+            </div>
         </div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Bootstrap JS and custom scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
     <script src="admin.js"></script>
 </body>
 </html>

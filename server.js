@@ -97,61 +97,73 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Test route for admin login
+// Test route to create and verify admin login
 app.get('/test-admin-login', async (req, res) => {
     try {
+        console.log('Starting admin account creation/verification...');
+        
+        // Delete existing admin user if it exists
         const User = require('./models/User');
         const bcrypt = require('bcryptjs');
+        const jwt = require('jsonwebtoken');
         
-        // First try to find the admin
-        let admin = await User.findOne({ email: 'admin@shawonburger.com' });
-        
-        if (admin) {
-            // Delete the existing admin user to create fresh
+        const existingAdmin = await User.findOne({ email: 'admin@shawonburger.com' });
+        if (existingAdmin) {
+            console.log('Removing existing admin account...');
             await User.deleteOne({ email: 'admin@shawonburger.com' });
-            console.log('Deleted existing admin user');
         }
         
-        // Create a fresh admin user
+        // Create a fresh admin user with known credentials
+        console.log('Creating fresh admin account...');
         const hashedPassword = await bcrypt.hash('admin123', 10);
-        admin = new User({
-            name: 'Admin',
+        
+        const admin = new User({
+            name: 'Admin User',
             email: 'admin@shawonburger.com',
-            password: hashedPassword,
-            phone: '123456789',
-            address: 'Admin Office',
+            password: 'admin123', // Will be hashed by the pre-save hook
+            phone: '1234567890',
+            address: 'Admin Address',
             role: 'admin'
         });
         
-        // Save the new admin user
         await admin.save();
-        console.log('Created fresh admin account');
-            
-        // Test login with direct bcrypt
-        const isMatch = await bcrypt.compare('admin123', admin.password);
+        console.log('Admin saved to database, ID:', admin._id);
         
-        // Generate JWT token
-        const jwt = require('jsonwebtoken');
-        const token = jwt.sign({ userId: admin._id }, process.env.JWT_SECRET);
+        // Verify we can retrieve the admin
+        const savedAdmin = await User.findOne({ email: 'admin@shawonburger.com' });
+        if (!savedAdmin) {
+            throw new Error('Failed to find admin after saving');
+        }
+        
+        console.log('Admin retrieved successfully');
+        
+        // Test password verification
+        console.log('Testing password verification...');
+        const passwordMatches = await bcrypt.compare('admin123', savedAdmin.password);
+        
+        if (!passwordMatches) {
+            console.log('Password verification failed!');
+            console.log('Stored password hash:', savedAdmin.password);
+            return res.status(500).json({ error: 'Admin created but password verification failed' });
+        }
+        
+        console.log('Password verification successful!');
+        
+        // Create a token for testing
+        const token = jwt.sign(
+            { userId: savedAdmin._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '1h' }
+        );
         
         return res.json({ 
-            success: true, 
-            message: 'Admin user recreated successfully',
-            passwordMatch: isMatch,
-            testLogin: {
-                email: 'admin@shawonburger.com',
-                password: 'admin123'
-            },
+            message: 'Admin created and verified successfully',
+            adminId: savedAdmin._id,
             token
         });
     } catch (error) {
-        console.error('Test admin creation error:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Test admin creation failed', 
-            error: error.message,
-            stack: error.stack
-        });
+        console.error('Admin creation error:', error);
+        return res.status(500).json({ error: error.message });
     }
 });
 

@@ -28,6 +28,118 @@ async function checkAdminAuth() {
     }
 }
 
+// Admin panel functionality
+document.addEventListener('DOMContentLoaded', () => {
+    const loginForm = document.getElementById('adminLoginForm');
+    const adminPanel = document.getElementById('adminPanel');
+    const loginContainer = document.getElementById('loginContainer');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    // Check if user is already logged in
+    const token = localStorage.getItem('adminToken');
+    if (token) {
+        showAdminPanel();
+    } else {
+        showLoginForm();
+    }
+
+    // Admin login form submission
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        // Get form data
+        const email = document.getElementById('adminEmail').value.trim();
+        const password = document.getElementById('adminPassword').value;
+        
+        // Validate form data
+        if (!email || !password) {
+            showMessage('Please enter both email and password', 'error');
+            return;
+        }
+        
+        // Disable the button and show loading state
+        const submitBtn = loginForm.querySelector('button[type="submit"]');
+        const originalBtnText = submitBtn.textContent;
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Logging in...';
+        
+        try {
+            console.log('Attempting admin login with:', { email, passwordProvided: !!password });
+            
+            // Send login request
+            const response = await fetch('/api/auth/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ email, password })
+            });
+            
+            const data = await response.json();
+            
+            if (!response.ok) {
+                throw new Error(data.error || 'Login failed');
+            }
+            
+            if (data.user.role !== 'admin') {
+                throw new Error('Access denied. Admin privileges required.');
+            }
+            
+            // Store admin token
+            localStorage.setItem('adminToken', data.token);
+            localStorage.setItem('adminUser', JSON.stringify(data.user));
+            
+            console.log('Admin login successful:', data.user);
+            
+            // Show success message and admin panel
+            showMessage('Login successful!', 'success');
+            showAdminPanel();
+        } catch (error) {
+            console.error('Admin login error:', error);
+            showMessage(error.message || 'Login failed. Please check your credentials.', 'error');
+        } finally {
+            // Reset button state
+            submitBtn.disabled = false;
+            submitBtn.textContent = originalBtnText;
+        }
+    });
+
+    // Logout functionality
+    logoutBtn.addEventListener('click', () => {
+        localStorage.removeItem('adminToken');
+        localStorage.removeItem('adminUser');
+        showLoginForm();
+        showMessage('Logged out successfully', 'success');
+    });
+
+    // Utility functions
+    function showAdminPanel() {
+        loginContainer.style.display = 'none';
+        adminPanel.style.display = 'block';
+        
+        // Display admin user info
+        const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
+        document.getElementById('adminName').textContent = adminUser.name || 'Admin';
+    }
+
+    function showLoginForm() {
+        loginContainer.style.display = 'block';
+        adminPanel.style.display = 'none';
+    }
+
+    function showMessage(message, type = 'info') {
+        const messageDiv = document.getElementById('messageContainer');
+        messageDiv.textContent = message;
+        messageDiv.className = `alert alert-${type === 'error' ? 'danger' : type}`;
+        messageDiv.style.display = 'block';
+        
+        // Hide message after 5 seconds
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 5000);
+    }
+});
+
 // Initialize dashboard
 document.addEventListener('DOMContentLoaded', async function() {
     if (await checkAdminAuth()) {
