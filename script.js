@@ -38,10 +38,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
     const password = document.getElementById('loginPassword').value;
-    await handleLogin(email, password);
-});
-
-async function handleLogin(email, password) {
+    
     try {
         const response = await fetch('/api/auth/login', {
             method: 'POST',
@@ -74,7 +71,7 @@ async function handleLogin(email, password) {
         console.error('Login error:', error);
         alert(error.message || 'Login failed. Please check your credentials.');
     }
-}
+});
 
 function handleLogout() {
     console.log('Logging out...');
