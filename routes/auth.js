@@ -35,21 +35,53 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
+        console.log('Login attempt:', { email, passwordProvided: !!password });
+        
+        if (!email || !password) {
+            return res.status(400).json({ 
+                error: 'Email and password are required',
+                received: { emailProvided: !!email, passwordProvided: !!password }
+            });
+        }
+        
         const user = await User.findOne({ email });
         
         if (!user) {
+            console.log(`User not found: ${email}`);
             return res.status(401).json({ error: 'Invalid email or password' });
         }
-
-        const isMatch = await user.comparePassword(password);
+        
+        console.log('User found, comparing password...');
+        
+        // Try direct bcrypt compare instead of using the model method
+        const bcrypt = require('bcryptjs');
+        const isMatch = await bcrypt.compare(password, user.password);
+        
         if (!isMatch) {
-            return res.status(401).json({ error: 'Invalid email or password' });
+            console.log('Password comparison failed');
+            return res.status(401).json({ 
+                error: 'Invalid email or password',
+                message: 'Password does not match'
+            });
         }
-
+        
+        console.log('Login successful, generating token...');
         const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
-        res.json({ token, user: { id: user._id, name: user.name, email, role: user.role } });
+        res.json({ 
+            token, 
+            user: { 
+                id: user._id, 
+                name: user.name, 
+                email, 
+                role: user.role 
+            } 
+        });
     } catch (error) {
-        res.status(400).json({ error: error.message });
+        console.error('Login error:', error);
+        res.status(400).json({ 
+            error: error.message,
+            stack: error.stack
+        });
     }
 });
 

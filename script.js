@@ -40,18 +40,22 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     const password = document.getElementById('loginPassword').value;
     
     try {
+        console.log('Login attempt with:', { email, passwordLength: password?.length });
+        
         const response = await fetch('/api/auth/login', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password })
         });
         
+        const data = await response.json();
+        
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.error || 'Login failed');
+            console.error('Server rejected login:', data);
+            throw new Error(data.error || 'Login failed');
         }
         
-        const data = await response.json();
+        console.log('Login successful:', data);
         authToken = data.token;
         currentUser = data.user;
         localStorage.setItem('authToken', authToken);
