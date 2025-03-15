@@ -21,11 +21,32 @@ if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
 
-// Log environment variables (sanitized)
-console.log('Starting server with environment:', {
-    nodeEnv: process.env.NODE_ENV,
-    port: process.env.PORT || 3000,
-    mongoDbConfigured: !!process.env.MONGODB_URI
+// Environmental variables
+const nodeEnv = process.env.NODE_ENV;
+const port = process.env.PORT || 3000;
+const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/burger-shop';
+const jwtSecret = process.env.JWT_SECRET || 'burger-shop-secret-key';
+const emailUser = process.env.EMAIL_USER || 'shawonburger@gmail.com'; // Email for OTP sending
+const emailPassword = process.env.EMAIL_PASSWORD || 'app_password_here'; // App password for email
+
+// Set environment variables if not set already
+if (!process.env.JWT_SECRET) {
+    process.env.JWT_SECRET = jwtSecret;
+}
+
+if (!process.env.EMAIL_USER) {
+    process.env.EMAIL_USER = emailUser;
+}
+
+if (!process.env.EMAIL_PASSWORD) {
+    process.env.EMAIL_PASSWORD = emailPassword;
+}
+
+// Log environment details (without sensitive info)
+console.log('Starting server with environment:', { 
+    nodeEnv, 
+    port, 
+    mongoDbConfigured: !!process.env.MONGODB_URI 
 });
 
 // Global error handler for all route handlers
@@ -388,8 +409,12 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-app.get('/admin', (req, res) => {
+app.get('/admin.html', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
+});
+
+app.get('/user-auth.html', (req, res) => {
+    res.sendFile(path.join(__dirname, 'user-auth.html'));
 });
 
 // Handle 404

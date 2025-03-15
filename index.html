@@ -11,6 +11,7 @@
     <!-- Add jQuery and Bootstrap JS -->
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="user-client.js"></script>
 </head>
 <body>
     <!-- Navbar -->
@@ -31,13 +32,13 @@
                 <div id="authSection" class="d-flex">
                     <!-- Show when logged out -->
                     <div id="loggedOutButtons">
-                        <button class="btn btn-outline-light me-2" onclick="showLoginModal()">Login</button>
-                        <button class="btn btn-light" onclick="showRegisterModal()">Sign Up</button>
+                        <a href="user-auth.html" class="btn btn-outline-light me-2">Login</a>
+                        <a href="user-auth.html" class="btn btn-light">Sign Up</a>
                     </div>
                     <!-- Show when logged in -->
                     <div id="loggedInButtons" style="display: none;">
                         <span class="text-light me-3" id="userGreeting"></span>
-                        <button class="btn btn-outline-light" onclick="handleLogout()">Logout</button>
+                        <button class="btn btn-outline-light" id="logoutBtn">Logout</button>
                     </div>
                 </div>
             </div>
@@ -147,32 +148,10 @@
                 </div>
                 <div class="col-md-4 mb-4">
                     <div class="card">
-                        <img src="https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=500" class="card-img-top" alt="Spicy Jalapeño Burger">
+                        <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500" class="card-img-top" alt="Classic Burger">
                         <div class="card-body">
-                            <h5 class="card-title">Spicy Jalapeño Burger</h5>
-                            <p class="card-text">Fresh jalapeños, pepper jack cheese, and spicy mayo.</p>
-                            <p class="price">৳229</p>
-                            <button class="btn btn-primary">Order Now</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card">
-                        <img src="https://images.pexels.com/photos/2983101/pexels-photo-2983101.jpeg?auto=compress&cs=tinysrgb&w=500" class="card-img-top" alt="Mushroom Swiss Burger">
-                        <div class="card-body">
-                            <h5 class="card-title">Mushroom Swiss Burger</h5>
-                            <p class="card-text">Sautéed mushrooms, Swiss cheese, and garlic aioli.</p>
-                            <p class="price">৳219</p>
-                            <button class="btn btn-primary">Order Now</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-md-4 mb-4">
-                    <div class="card">
-                        <img src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500" class="card-img-top" alt="Chicken Avocado Burger">
-                        <div class="card-body">
-                            <h5 class="card-title">Chicken Avocado Burger</h5>
-                            <p class="card-text">Grilled chicken, fresh avocado, and ranch dressing.</p>
+                            <h5 class="card-title">Classic Burger</h5>
+                            <p class="card-text">Our signature beef patty with fresh lettuce, tomatoes, and special sauce.</p>
                             <p class="price">৳199</p>
                             <button class="btn btn-primary">Order Now</button>
                         </div>
@@ -180,33 +159,66 @@
                 </div>
                 <div class="col-md-4 mb-4">
                     <div class="card">
-                        <img src="https://images.unsplash.com/photo-1581636625402-391b6a87d7b3?w=500" class="card-img-top" alt="Hawaiian Burger">
+                        <img src="https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500" class="card-img-top" alt="Double Cheese Burger">
                         <div class="card-body">
-                            <h5 class="card-title">Hawaiian Burger</h5>
-                            <p class="card-text">Grilled pineapple, ham, and teriyaki sauce.</p>
-                            <p class="price">৳239</p>
+                            <h5 class="card-title">Double Cheese Burger</h5>
+                            <p class="card-text">Double cheese with caramelized onions and bacon.</p>
+                            <p class="price">৳299</p>
                             <button class="btn btn-primary">Order Now</button>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
                     <div class="card">
-                        <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500" class="card-img-top" alt="Bacon Blue Cheese Burger">
+                        <img src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500" class="card-img-top" alt="Veggie Burger">
                         <div class="card-body">
-                            <h5 class="card-title">Bacon Blue Cheese Burger</h5>
-                            <p class="card-text">Crispy bacon, blue cheese crumbles, and caramelized onions.</p>
-                            <p class="price">৳259</p>
+                            <h5 class="card-title">Veggie Burger</h5>
+                            <p class="card-text">Plant-based patty with fresh vegetables and vegan sauce.</p>
+                            <p class="price">৳149</p>
                             <button class="btn btn-primary">Order Now</button>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-4 mb-4">
                     <div class="card">
-                        <img src="https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500" class="card-img-top" alt="Triple Stack Burger">
+                        <img src="https://images.pexels.com/photos/3738755/pexels-photo-3738755.jpeg?auto=compress&cs=tinysrgb&w=500" class="card-img-top" alt="BBQ Burger">
                         <div class="card-body">
-                            <h5 class="card-title">Triple Stack Burger</h5>
-                            <p class="card-text">Three beef patties, triple cheese, and all the fixings.</p>
-                            <p class="price">৳499</p>
+                            <h5 class="card-title">BBQ Burger</h5>
+                            <p class="card-text">Smoky BBQ sauce, crispy onion rings, and cheddar cheese.</p>
+                            <p class="price">৳199</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500" class="card-img-top" alt="Classic Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">Classic Burger</h5>
+                            <p class="card-text">Our signature beef patty with fresh lettuce, tomatoes, and special sauce.</p>
+                            <p class="price">৳199</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500" class="card-img-top" alt="Double Cheese Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">Double Cheese Burger</h5>
+                            <p class="card-text">Double cheese with caramelized onions and bacon.</p>
+                            <p class="price">৳299</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500" class="card-img-top" alt="Veggie Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">Veggie Burger</h5>
+                            <p class="card-text">Plant-based patty with fresh vegetables and vegan sauce.</p>
+                            <p class="price">৳149</p>
                             <button class="btn btn-primary">Order Now</button>
                         </div>
                     </div>
