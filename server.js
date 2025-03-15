@@ -4,6 +4,10 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const compression = require('compression');
+const authRoutes = require('./routes/auth');
+const orderRoutes = require('./routes/orders');
+const adminRoutes = require('./routes/admin');
+const reviewRoutes = require('./routes/reviews');
 
 // Start with just loading the Express app
 const app = express();
@@ -28,7 +32,13 @@ console.log('Starting server with environment:', {
     mongoDbConfigured: !!process.env.MONGODB_URI
 });
 
-// Health check endpoint - always responds regardless of DB connection
+// Set up API routes immediately (don't wait for DB connection)
+app.use('/api/auth', authRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api', reviewRoutes);
+
+// Health check endpoint
 app.get('/health', (req, res) => {
     const mongoStatus = mongoose.connection.readyState;
     const statusNames = ['disconnected', 'connected', 'connecting', 'disconnecting'];
@@ -41,7 +51,7 @@ app.get('/health', (req, res) => {
     });
 });
 
-// Basic initial routes
+// Serve static files
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -50,7 +60,7 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-// Default 404 handler
+// Handle 404
 app.use((req, res) => {
     if (req.path.startsWith('/api')) {
         res.status(404).json({ error: 'API endpoint not found' });
@@ -79,10 +89,9 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     connectToMongoDB()
         .then(isConnected => {
             if (isConnected) {
-                // Setup routes only after successful DB connection
-                setupRoutes();
+                console.log('MongoDB connected successfully - all features are available');
             } else {
-                console.log('Server running but MongoDB connection failed');
+                console.log('Server running with limited functionality (no database connection)');
             }
         })
         .catch(err => {
@@ -165,24 +174,5 @@ async function createAdminUser() {
         }
     } catch (error) {
         console.error('Error creating admin user:', error.message);
-    }
-}
-
-// Setup all API routes
-function setupRoutes() {
-    try {
-        const authRoutes = require('./routes/auth');
-        const orderRoutes = require('./routes/orders');
-        const adminRoutes = require('./routes/admin');
-        const reviewRoutes = require('./routes/reviews');
-        
-        app.use('/api/auth', authRoutes);
-        app.use('/api/orders', orderRoutes);
-        app.use('/api/admin', adminRoutes);
-        app.use('/api', reviewRoutes);
-        
-        console.log('API routes configured successfully');
-    } catch (error) {
-        console.error('Error setting up routes:', error.message);
     }
 }
