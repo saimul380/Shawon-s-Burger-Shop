@@ -3,8 +3,10 @@ services:
     name: shawon-burger-shop
     env: node
     region: singapore
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: |
+      chmod +x start.sh
+      npm install
+    startCommand: ./start.sh
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
