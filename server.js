@@ -77,7 +77,7 @@ app.get('/health', (req, res) => {
         status: 'ok',
         server: 'running',
         mongo: statusNames[mongoStatus] || 'unknown',
-        routes: 'minimal',
+        routes: 'full', 
         timestamp: new Date().toISOString()
     });
 });
@@ -140,13 +140,23 @@ server.on('error', (err) => {
 // Replace placeholder routes with real ones after DB connection
 function setupFullRoutes() {
     try {
-        // Remove placeholder routes
-        app._router.stack = app._router.stack.filter(layer => {
-            return !(layer.route && 
-                (layer.route.path === '/api/auth' || 
-                 layer.route.path === '/api/orders' || 
-                 layer.route.path === '/api/admin'));
-        });
+        // Remove placeholder routes by path pattern matching
+        let routerIndex = -1;
+        for (let i = 0; i < app._router.stack.length; i++) {
+            const layer = app._router.stack[i];
+            if (layer && layer.regexp && 
+                (layer.regexp.toString().includes('/api/auth') || 
+                 layer.regexp.toString().includes('/api/orders') || 
+                 layer.regexp.toString().includes('/api/admin'))) {
+                routerIndex = i;
+                break;
+            }
+        }
+        
+        if (routerIndex !== -1) {
+            // Remove the middleware placeholders
+            app._router.stack.splice(routerIndex, 3); // Remove 3 placeholders
+        }
         
         // Add real routes
         const authRoutes = require('./routes/auth');
