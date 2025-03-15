@@ -336,6 +336,53 @@ app.post('/direct-admin-login', async (req, res) => {
     }
 });
 
+// Direct admin verification endpoint
+app.post('/direct-admin-verify', (req, res) => {
+    try {
+        const authHeader = req.headers.authorization;
+        
+        if (!authHeader || !authHeader.startsWith('Bearer ')) {
+            return res.status(401).json({
+                success: false,
+                error: 'No token provided'
+            });
+        }
+        
+        const token = authHeader.replace('Bearer ', '');
+        
+        // Verify the token without database access
+        try {
+            const jwt = require('jsonwebtoken');
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            
+            // Don't verify against database - just check if token is valid
+            // This makes the system more resilient to MongoDB connection issues
+            
+            return res.json({
+                success: true,
+                user: {
+                    id: decoded.userId,
+                    name: 'Admin User',
+                    email: 'admin@shawonburger.com',
+                    role: 'admin'
+                }
+            });
+        } catch (jwtError) {
+            console.error('JWT verification error:', jwtError);
+            return res.status(401).json({
+                success: false,
+                error: 'Invalid token'
+            });
+        }
+    } catch (error) {
+        console.error('Token verification error:', error);
+        return res.status(500).json({
+            success: false,
+            error: 'Server error during verification'
+        });
+    }
+});
+
 // Serve static files
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));

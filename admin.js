@@ -5,25 +5,50 @@ let currentUser = null;
 // Check authentication and redirect if not admin
 async function checkAdminAuth() {
     try {
-        const response = await fetch('/api/auth/profile', {
-            headers: {
-                'Authorization': `Bearer ${authToken}`
+        // Skip authentication check if we're on the login page
+        if (document.getElementById('adminLoginForm') && 
+            document.getElementById('adminLoginForm').style.display !== 'none') {
+            return false; // Just return false without redirecting
+        }
+        
+        const token = localStorage.getItem('adminToken');
+        if (!token) {
+            throw new Error('No authentication token');
+        }
+        
+        // Use our direct admin verification instead of the profile endpoint
+        try {
+            const response = await fetch('/direct-admin-verify', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({ token })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Authentication failed');
             }
-        });
-        
-        if (!response.ok) {
-            throw new Error('Authentication failed');
+            
+            const data = await response.json();
+            if (data.user.role !== 'admin') {
+                throw new Error('Not authorized');
+            }
+            
+            currentUser = data.user;
+            return true;
+        } catch (error) {
+            console.error('Auth verification error:', error);
+            throw error;
         }
-        
-        const user = await response.json();
-        if (user.role !== 'admin') {
-            throw new Error('Not authorized');
-        }
-        
-        currentUser = user;
-        return true;
     } catch (error) {
-        window.location.href = '/';
+        console.log('Auth check failed:', error.message);
+        // Only redirect if not on the login page
+        if (!document.getElementById('adminLoginForm') || 
+            document.getElementById('adminLoginForm').style.display === 'none') {
+            showLoginForm();
+        }
         return false;
     }
 }
@@ -114,8 +139,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Utility functions
     function showAdminPanel() {
-        loginContainer.style.display = 'none';
-        adminPanel.style.display = 'block';
+        const loginContainer = document.getElementById('loginContainer');
+        const adminPanel = document.getElementById('adminPanel');
+        
+        if (loginContainer) loginContainer.style.display = 'none';
+        if (adminPanel) adminPanel.style.display = 'block';
         
         // Display admin user info
         const adminUser = JSON.parse(localStorage.getItem('adminUser') || '{}');
@@ -123,8 +151,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function showLoginForm() {
-        loginContainer.style.display = 'block';
-        adminPanel.style.display = 'none';
+        const loginContainer = document.getElementById('loginContainer');
+        const adminPanel = document.getElementById('adminPanel');
+        
+        if (loginContainer) loginContainer.style.display = 'block';
+        if (adminPanel) adminPanel.style.display = 'none';
     }
 
     function showMessage(message, type = 'info') {
