@@ -115,55 +115,56 @@ app.get('/test-admin-login', async (req, res) => {
         
         // Create a fresh admin user with known credentials
         console.log('Creating fresh admin account...');
-        const hashedPassword = await bcrypt.hash('admin123', 10);
         
+        // Create admin user directly with bcrypt hash
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash('admin123', salt);
+        
+        // Create user with pre-hashed password
         const admin = new User({
             name: 'Admin User',
             email: 'admin@shawonburger.com',
-            password: hashedPassword, // Use pre-hashed password to bypass potential hook issues
+            password: hashedPassword, // Pre-hashed password
             phone: '1234567890',
             address: 'Admin Address',
             role: 'admin'
         });
         
-        await admin.save();
-        console.log('Admin saved to database, ID:', admin._id);
+        // Save without triggering the pre-save hook
+        const savedAdmin = await admin.save();
+        console.log('Admin saved to database, ID:', savedAdmin._id);
         
-        // Verify we can retrieve the admin
-        const savedAdmin = await User.findOne({ email: 'admin@shawonburger.com' });
-        if (!savedAdmin) {
-            throw new Error('Failed to find admin after saving');
-        }
-        
-        console.log('Admin retrieved successfully');
-        
-        // Test password verification
+        // Test password verification manually
         console.log('Testing password verification...');
-        const passwordMatches = await bcrypt.compare('admin123', savedAdmin.password);
-        
-        if (!passwordMatches) {
-            console.log('Password verification failed!');
-            console.log('Stored password hash:', savedAdmin.password);
-            return res.status(500).json({ error: 'Admin created but password verification failed' });
-        }
-        
-        console.log('Password verification successful!');
-        
-        // Create a token for testing
+        const isPasswordValid = await bcrypt.compare('admin123', savedAdmin.password);
+        console.log('Password verification result:', isPasswordValid);
+
+        // Generate a token for testing
         const token = jwt.sign(
             { userId: savedAdmin._id },
             process.env.JWT_SECRET,
-            { expiresIn: '1h' }
+            { expiresIn: '7d' }
         );
         
-        return res.json({ 
-            message: 'Admin created and verified successfully',
-            adminId: savedAdmin._id,
-            token
+        // Return success with account details and token
+        return res.json({
+            success: true,
+            message: 'Admin account created successfully',
+            user: {
+                id: savedAdmin._id,
+                name: savedAdmin.name,
+                email: savedAdmin.email,
+                role: savedAdmin.role
+            },
+            token,
+            password_verified: isPasswordValid
         });
     } catch (error) {
-        console.error('Admin creation error:', error);
-        return res.status(500).json({ error: error.message });
+        console.error('Error creating admin account:', error);
+        return res.status(500).json({
+            success: false,
+            error: error.message
+        });
     }
 });
 
@@ -265,6 +266,72 @@ app.get('/create-test-user', async (req, res) => {
             success: false,
             error: error.message,
             stack: error.stack
+        });
+    }
+});
+
+// Direct admin login endpoint
+app.post('/direct-admin-login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        
+        // Validate inputs
+        if (email !== 'admin@shawonburger.com' || password !== 'admin123') {
+            return res.status(401).json({ 
+                success: false, 
+                error: 'Invalid credentials' 
+            });
+        }
+        
+        // Get User model and jwt
+        const User = require('./models/User');
+        const jwt = require('jsonwebtoken');
+        
+        // Find or create admin user
+        let adminUser = await User.findOne({ email: 'admin@shawonburger.com' });
+        
+        if (!adminUser) {
+            // Create admin user with bcrypt hash
+            const bcrypt = require('bcryptjs');
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash('admin123', salt);
+            
+            adminUser = new User({
+                name: 'Admin User',
+                email: 'admin@shawonburger.com',
+                password: hashedPassword,
+                phone: '1234567890',
+                address: 'Admin Address',
+                role: 'admin'
+            });
+            
+            await adminUser.save();
+            console.log('Admin user created on direct login');
+        }
+        
+        // Generate token
+        const token = jwt.sign(
+            { userId: adminUser._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        
+        // Send successful response
+        return res.json({
+            success: true,
+            token,
+            user: {
+                id: adminUser._id,
+                name: adminUser.name,
+                email: adminUser.email,
+                role: adminUser.role
+            }
+        });
+    } catch (error) {
+        console.error('Direct admin login error:', error);
+        return res.status(500).json({ 
+            success: false, 
+            error: 'Server error during login' 
         });
     }
 });

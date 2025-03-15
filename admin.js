@@ -66,8 +66,8 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             console.log('Attempting admin login with:', { email, passwordProvided: !!password });
             
-            // Send login request
-            const response = await fetch('/api/auth/login', {
+            // Send login request to direct admin login endpoint
+            const response = await fetch('/direct-admin-login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

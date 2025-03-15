@@ -58,6 +58,8 @@ router.post('/login', async (req, res) => {
         
         if (!isMatch) {
             console.log('Password comparison failed for user:', email);
+            console.log('User password hash:', user.password);
+            console.log('Input password:', password);
             return res.status(401).json({ error: 'Invalid email or password' });
         }
         
