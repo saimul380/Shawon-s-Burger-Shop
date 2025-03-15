@@ -4,15 +4,11 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const compression = require('compression');
-const authRoutes = require('./routes/auth');
-const orderRoutes = require('./routes/orders');
-const adminRoutes = require('./routes/admin');
-const reviewRoutes = require('./routes/reviews');
-const User = require('./models/User');
 
+// Start with just loading the Express app
 const app = express();
 
-// Middleware
+// Basic middleware
 app.use(cors());
 app.use(compression());
 app.use(express.json());
@@ -25,69 +21,27 @@ if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
 
-// Log environment
+// Log environment variables (sanitized)
 console.log('Starting server with environment:', {
     nodeEnv: process.env.NODE_ENV,
-    port: process.env.PORT,
+    port: process.env.PORT || 3000,
     mongoDbConfigured: !!process.env.MONGODB_URI
 });
 
-// Database connection
-const connectToMongoDB = async () => {
-    try {
-        if (!process.env.MONGODB_URI) {
-            throw new Error('MONGODB_URI environment variable is not set');
-        }
-
-        // Log sanitized connection string
-        const sanitizedUri = process.env.MONGODB_URI.replace(/(mongodb\+srv:\/\/)([^@]+)(@)/, '$1****$3');
-        console.log('Attempting MongoDB connection with URI:', sanitizedUri);
-
-        await mongoose.connect(process.env.MONGODB_URI);
-        console.log('MongoDB connected successfully');
-
-        // Create admin user
-        const adminExists = await User.findOne({ email: 'admin@shawonburger.com' });
-        if (!adminExists) {
-            const bcrypt = require('bcryptjs');
-            const hashedPassword = await bcrypt.hash('admin123', 10);
-            await User.create({
-                name: 'Admin',
-                email: 'admin@shawonburger.com',
-                password: hashedPassword,
-                role: 'admin'
-            });
-            console.log('Admin user created successfully');
-        }
-
-        return true;
-    } catch (error) {
-        console.error('MongoDB connection error:', {
-            message: error.message,
-            name: error.name,
-            stack: error.stack
-        });
-        return false;
-    }
-};
-
-// Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api', reviewRoutes);
-
-// Health check
+// Health check endpoint - always responds regardless of DB connection
 app.get('/health', (req, res) => {
     const mongoStatus = mongoose.connection.readyState;
+    const statusNames = ['disconnected', 'connected', 'connecting', 'disconnecting'];
+    
     res.json({
         status: 'ok',
-        mongo: ['disconnected', 'connected', 'connecting', 'disconnecting'][mongoStatus],
+        server: 'running',
+        mongo: statusNames[mongoStatus] || 'unknown',
         timestamp: new Date().toISOString()
     });
 });
 
-// Serve static files
+// Basic initial routes
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
@@ -96,7 +50,7 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin.html'));
 });
 
-// Handle 404
+// Default 404 handler
 app.use((req, res) => {
     if (req.path.startsWith('/api')) {
         res.status(404).json({ error: 'API endpoint not found' });
@@ -116,19 +70,119 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
-// Start server
+// Start server first - before trying DB connection
 const PORT = process.env.PORT || 3000;
-const server = app.listen(PORT, '0.0.0.0', async () => {
+const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
     
-    // Connect to MongoDB after server starts
-    const connected = await connectToMongoDB();
-    if (!connected) {
-        console.error('Failed to connect to MongoDB. Server will continue running but database operations will fail.');
-    }
+    // Now attempt to connect to MongoDB
+    connectToMongoDB()
+        .then(isConnected => {
+            if (isConnected) {
+                // Setup routes only after successful DB connection
+                setupRoutes();
+            } else {
+                console.log('Server running but MongoDB connection failed');
+            }
+        })
+        .catch(err => {
+            console.error('Unhandled error during MongoDB connection:', err);
+        });
 });
 
 // Handle server errors
 server.on('error', (err) => {
     console.error('Server error:', err);
 });
+
+// Database connection function
+async function connectToMongoDB() {
+    // Default to no connection
+    if (!process.env.MONGODB_URI) {
+        console.error('MONGODB_URI environment variable is not set');
+        return false;
+    }
+
+    try {
+        // Log sanitized connection string
+        const sanitizedUri = process.env.MONGODB_URI.replace(/(mongodb\+srv:\/\/)([^@]+)(@)/, '$1****$3');
+        console.log('Attempting MongoDB connection with URI:', sanitizedUri);
+
+        // Set mongoose options
+        mongoose.set('strictQuery', false);
+        
+        // Connect with retry logic
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            try {
+                console.log(`Connection attempt ${attempt} of 3`);
+                await mongoose.connect(process.env.MONGODB_URI, {
+                    serverSelectionTimeoutMS: 5000
+                });
+                
+                console.log('MongoDB connected successfully');
+                
+                // Only try to create admin user if we successfully connected
+                await createAdminUser();
+                
+                return true;
+            } catch (err) {
+                console.error(`MongoDB connection attempt ${attempt} failed:`, err.message);
+                
+                if (attempt < 3) {
+                    const delay = attempt * 1000;
+                    console.log(`Waiting ${delay}ms before next attempt...`);
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+        
+        console.error('All MongoDB connection attempts failed');
+        return false;
+    } catch (error) {
+        console.error('MongoDB connection error:', {
+            message: error.message,
+            name: error.name
+        });
+        return false;
+    }
+}
+
+// Create admin user function
+async function createAdminUser() {
+    try {
+        const User = require('./models/User');
+        const adminExists = await User.findOne({ email: 'admin@shawonburger.com' });
+        if (!adminExists) {
+            const bcrypt = require('bcryptjs');
+            const hashedPassword = await bcrypt.hash('admin123', 10);
+            await User.create({
+                name: 'Admin',
+                email: 'admin@shawonburger.com',
+                password: hashedPassword,
+                role: 'admin'
+            });
+            console.log('Admin user created successfully');
+        }
+    } catch (error) {
+        console.error('Error creating admin user:', error.message);
+    }
+}
+
+// Setup all API routes
+function setupRoutes() {
+    try {
+        const authRoutes = require('./routes/auth');
+        const orderRoutes = require('./routes/orders');
+        const adminRoutes = require('./routes/admin');
+        const reviewRoutes = require('./routes/reviews');
+        
+        app.use('/api/auth', authRoutes);
+        app.use('/api/orders', orderRoutes);
+        app.use('/api/admin', adminRoutes);
+        app.use('/api', reviewRoutes);
+        
+        console.log('API routes configured successfully');
+    } catch (error) {
+        console.error('Error setting up routes:', error.message);
+    }
+}
