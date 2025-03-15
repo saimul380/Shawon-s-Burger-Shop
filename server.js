@@ -48,63 +48,88 @@ async function createAdminUser() {
 
 // Database connection with retry logic
 const connectDB = async (retries = 5) => {
+    const mongoURI = process.env.MONGODB_URI;
+    console.log('Attempting to connect to MongoDB...');
+    
+    if (!mongoURI) {
+        throw new Error('MONGODB_URI environment variable is not set');
+    }
+
     for (let i = 0; i < retries; i++) {
         try {
-            await mongoose.connect(process.env.MONGODB_URI, {
+            await mongoose.connect(mongoURI, {
                 useNewUrlParser: true,
-                useUnifiedTopology: true
+                useUnifiedTopology: true,
+                serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+                socketTimeoutMS: 45000, // Close sockets after 45s of inactivity
             });
-            console.log('Connected to MongoDB');
+            
+            console.log('Connected to MongoDB successfully');
             await createAdminUser();
-            return;
+            return true;
         } catch (err) {
-            console.error(`MongoDB connection attempt ${i + 1} failed:`, err);
-            if (i === retries - 1) throw err;
-            await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retrying
+            console.error(`MongoDB connection attempt ${i + 1} failed:`, err.message);
+            
+            if (i === retries - 1) {
+                console.error('All connection attempts failed');
+                throw err;
+            }
+            
+            // Wait longer between retries
+            const waitTime = Math.min(1000 * Math.pow(2, i), 10000);
+            console.log(`Waiting ${waitTime}ms before next attempt...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
         }
     }
+    return false;
 };
 
-// Connect to database
-connectDB().catch(err => {
-    console.error('Failed to connect to MongoDB:', err);
-    process.exit(1);
-});
+// Initialize server only after DB connection
+async function startServer() {
+    try {
+        await connectDB();
+        
+        // API Routes
+        app.use('/api/auth', authRoutes);
+        app.use('/api/orders', orderRoutes);
+        app.use('/api/admin', adminRoutes);
+        app.use('/api', reviewRoutes);
 
-// Error handling middleware
-app.use((err, req, res, next) => {
-    console.error(err.stack);
-    res.status(500).json({ error: 'Something went wrong!' });
-});
+        // Serve HTML files
+        app.get('/', (req, res) => {
+            res.sendFile(path.join(__dirname, 'index.html'));
+        });
 
-// API Routes
-app.use('/api/auth', authRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api', reviewRoutes);
+        app.get('/admin', (req, res) => {
+            res.sendFile(path.join(__dirname, 'admin.html'));
+        });
 
-// Serve HTML files
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+        // Handle all other routes by serving index.html (for client-side routing)
+        app.get('*', (req, res) => {
+            if (req.path.startsWith('/api')) {
+                res.status(404).json({ error: 'API endpoint not found' });
+            } else {
+                res.sendFile(path.join(__dirname, 'index.html'));
+            }
+        });
 
-app.get('/admin', (req, res) => {
-    res.sendFile(path.join(__dirname, 'admin.html'));
-});
+        // Error handling middleware
+        app.use((err, req, res, next) => {
+            console.error(err.stack);
+            res.status(500).json({ error: 'Something went wrong!' });
+        });
 
-// Handle all other routes by serving index.html (for client-side routing)
-app.get('*', (req, res) => {
-    if (req.path.startsWith('/api')) {
-        res.status(404).json({ error: 'API endpoint not found' });
-    } else {
-        res.sendFile(path.join(__dirname, 'index.html'));
+        // Start server
+        const PORT = process.env.PORT || 3000;
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`Server is running on port ${PORT}`);
+            console.log(`Environment: ${process.env.NODE_ENV}`);
+        });
+    } catch (error) {
+        console.error('Failed to start server:', error);
+        process.exit(1);
     }
-});
+}
 
-// Start server
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server running on port ${PORT}`);
-    console.log(`MongoDB URI: ${process.env.MONGODB_URI ? 'Set' : 'Not Set'}`);
-    console.log(`Environment: ${process.env.NODE_ENV}`);
-});
+// Start the server
+startServer();
