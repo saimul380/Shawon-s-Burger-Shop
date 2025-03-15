@@ -2,14 +2,13 @@ services:
   - type: web
     name: shawon-burger-shop
     env: node
-    buildCommand: npm install
-    startCommand: node server.js
+    region: singapore
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /health
     envVars:
       - key: NODE_ENV
         value: production
-      - key: MONGODB_URI
-        sync: false
-      - key: JWT_SECRET
-        sync: false
-      - key: STRIPE_SECRET_KEY
-        sync: false
+      - key: PORT
+        value: 3000
+    autoDeploy: true
