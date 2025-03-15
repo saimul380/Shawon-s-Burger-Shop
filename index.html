@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shawon's Burger Shop</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://js.stripe.com/v3/"></script>
+    <!-- Add jQuery and Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="#">Shawon's Burger Shop</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item"><a class="nav-link" href="#home">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#menu">Menu</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#contact">Contact</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#reviews">Reviews</a></li>
+                </ul>
+                <div id="authSection" class="d-flex">
+                    <!-- Show when logged out -->
+                    <div id="loggedOutButtons">
+                        <button class="btn btn-outline-light me-2" onclick="showLoginModal()">Login</button>
+                        <button class="btn btn-light" onclick="showRegisterModal()">Sign Up</button>
+                    </div>
+                    <!-- Show when logged in -->
+                    <div id="loggedInButtons" style="display: none;">
+                        <span class="text-light me-3" id="userGreeting"></span>
+                        <button class="btn btn-outline-light" onclick="handleLogout()">Logout</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section id="home" class="hero">
+        <div class="hero-content">
+            <h1>Welcome to Shawon's Burger Shop</h1>
+            <p>Taste the difference in every bite!</p>
+            <a href="#menu" class="btn btn-primary btn-lg">View Menu</a>
+        </div>
+    </section>
+
+    <!-- Menu Section -->
+    <section id="menu" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">Our Menu</h2>
+            
+            <!-- Special Deals Section -->
+            <div class="special-deals mb-5">
+                <h3 class="text-center mb-4">Special Deals</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-4">
+                        <div class="card deal-card">
+                            <div class="card-body text-center">
+                                <h4 class="card-title">Family Feast</h4>
+                                <div class="deal-badge">Save 25%</div>
+                                <p class="card-text">2 Large Pizzas + 2 Burgers + 2 Drinks</p>
+                                <p class="price"><s>$66.65</s> <span class="deal-price">$49.99</span></p>
+                                <button class="btn btn-primary btn-lg" onclick="handleComboOrder('Family Feast')">Order Deal</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card deal-card">
+                            <div class="card-body text-center">
+                                <h4 class="card-title">Lunch Special</h4>
+                                <div class="deal-badge">Save 20%</div>
+                                <p class="card-text">Any Burger + Fries + Drink<br>(11 AM - 3 PM)</p>
+                                <p class="price"><s>$18.74</s> <span class="deal-price">$14.99</span></p>
+                                <button class="btn btn-primary btn-lg" onclick="handleComboOrder('Lunch Special')">Order Deal</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-4">
+                        <div class="card deal-card">
+                            <div class="card-body text-center">
+                                <h4 class="card-title">Pizza Party Pack</h4>
+                                <div class="deal-badge">Save 30%</div>
+                                <p class="card-text">3 Large Pizzas + 2L Soft Drink<br>Perfect for parties!</p>
+                                <p class="price"><s>$57.13</s> <span class="deal-price">$39.99</span></p>
+                                <button class="btn btn-primary btn-lg" onclick="handleComboOrder('Pizza Party Pack')">Order Deal</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Burgers Section -->
+            <h3 class="text-center mb-4">Signature Burgers</h3>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500" class="card-img-top" alt="Classic Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">Classic Burger</h5>
+                            <p class="card-text">Our signature beef patty with fresh lettuce, tomatoes, and special sauce.</p>
+                            <p class="price">$8.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500" class="card-img-top" alt="Double Cheese Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">Double Cheese Burger</h5>
+                            <p class="card-text">Double cheese with caramelized onions and bacon.</p>
+                            <p class="price">$10.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500" class="card-img-top" alt="Veggie Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">Veggie Burger</h5>
+                            <p class="card-text">Plant-based patty with fresh vegetables and vegan sauce.</p>
+                            <p class="price">$9.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1586190848861-391b6a87d7b3?w=500" class="card-img-top" alt="BBQ Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">BBQ Burger</h5>
+                            <p class="card-text">Smoky BBQ sauce, crispy onion rings, and cheddar cheese.</p>
+                            <p class="price">$11.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1565299507177-b0ac66763828?w=500" class="card-img-top" alt="Spicy Jalapeño Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">Spicy Jalapeño Burger</h5>
+                            <p class="card-text">Fresh jalapeños, pepper jack cheese, and spicy mayo.</p>
+                            <p class="price">$10.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1572802419224-296b0aeee0d9?w=500" class="card-img-top" alt="Mushroom Swiss Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">Mushroom Swiss Burger</h5>
+                            <p class="card-text">Sautéed mushrooms, Swiss cheese, and garlic aioli.</p>
+                            <p class="price">$11.49</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1594212699903-ec8a3eca50f5?w=500" class="card-img-top" alt="Chicken Avocado Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">Chicken Avocado Burger</h5>
+                            <p class="card-text">Grilled chicken, fresh avocado, and ranch dressing.</p>
+                            <p class="price">$10.49</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1547584370-2cc98b8b8dc8?w=500" class="card-img-top" alt="Hawaiian Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">Hawaiian Burger</h5>
+                            <p class="card-text">Grilled pineapple, ham, and teriyaki sauce.</p>
+                            <p class="price">$11.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1568901346375-23c9450c58cd?w=500" class="card-img-top" alt="Bacon Blue Cheese Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">Bacon Blue Cheese Burger</h5>
+                            <p class="card-text">Crispy bacon, blue cheese crumbles, and caramelized onions.</p>
+                            <p class="price">$12.49</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1553979459-d2229ba7433b?w=500" class="card-img-top" alt="Triple Stack Burger">
+                        <div class="card-body">
+                            <h5 class="card-title">Triple Stack Burger</h5>
+                            <p class="card-text">Three beef patties, triple cheese, and all the fixings.</p>
+                            <p class="price">$14.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pizza Section -->
+            <h3 class="text-center mb-4 mt-5">Gourmet Pizzas</h3>
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1513104890138-7c749659a591?w=500" class="card-img-top" alt="Margherita Pizza">
+                        <div class="card-body">
+                            <h5 class="card-title">Margherita Pizza</h5>
+                            <p class="card-text">Fresh mozzarella, basil, and tomato sauce.</p>
+                            <p class="price">$12.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1594007654729-407eedc4be65?w=500" class="card-img-top" alt="Pepperoni Supreme">
+                        <div class="card-body">
+                            <h5 class="card-title">Pepperoni Supreme</h5>
+                            <p class="card-text">Double pepperoni and extra cheese blend.</p>
+                            <p class="price">$14.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1528137871618-391b6a87d7b3?w=500" class="card-img-top" alt="BBQ Chicken Pizza">
+                        <div class="card-body">
+                            <h5 class="card-title">BBQ Chicken Pizza</h5>
+                            <p class="card-text">Grilled chicken, BBQ sauce, red onions, and cilantro.</p>
+                            <p class="price">$15.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1574071318508-1cdbab80d002?w=500" class="card-img-top" alt="Vegetarian Delight">
+                        <div class="card-body">
+                            <h5 class="card-title">Vegetarian Delight</h5>
+                            <p class="card-text">Bell peppers, mushrooms, olives, and onions.</p>
+                            <p class="price">$13.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1604382355076-aa295f0d016a?w=500" class="card-img-top" alt="Meat Lovers">
+                        <div class="card-body">
+                            <h5 class="card-title">Meat Lovers</h5>
+                            <p class="card-text">Pepperoni, sausage, bacon, and ground beef.</p>
+                            <p class="price">$16.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1593560708920-61dd98c46a4e?w=500" class="card-img-top" alt="Hawaiian Paradise">
+                        <div class="card-body">
+                            <h5 class="card-title">Hawaiian Paradise</h5>
+                            <p class="card-text">Ham, pineapple, and extra mozzarella.</p>
+                            <p class="price">$14.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1595854341625-f33ee10dbf94?w=500" class="card-img-top" alt="Buffalo Chicken">
+                        <div class="card-body">
+                            <h5 class="card-title">Buffalo Chicken</h5>
+                            <p class="card-text">Spicy buffalo chicken, ranch, and blue cheese.</p>
+                            <p class="price">$15.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1571066811602-716837d681de?w=500" class="card-img-top" alt="Spinach & Feta">
+                        <div class="card-body">
+                            <h5 class="card-title">Spinach & Feta</h5>
+                            <p class="card-text">Fresh spinach, feta cheese, and garlic olive oil.</p>
+                            <p class="price">$14.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1600028068383-ea11a7a101f3?w=500" class="card-img-top" alt="Supreme">
+                        <div class="card-body">
+                            <h5 class="card-title">Supreme</h5>
+                            <p class="card-text">The works! All our favorite toppings in one pizza.</p>
+                            <p class="price">$17.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <img src="https://images.unsplash.com/photo-1593246049226-ded77bf90326?w=500" class="card-img-top" alt="Pesto Chicken">
+                        <div class="card-body">
+                            <h5 class="card-title">Pesto Chicken</h5>
+                            <p class="card-text">Basil pesto, grilled chicken, and sun-dried tomatoes.</p>
+                            <p class="price">$15.99</p>
+                            <button class="btn btn-primary">Order Now</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Drinks Section -->
+            <div class="menu-section mb-5">
+                <h3 class="text-center mb-4">Refreshing Drinks</h3>
+                <div class="row">
+                    <!-- Cold Drinks -->
+                    <div class="col-lg-4">
+                        <div class="card mb-4">
+                            <img src="https://images.unsplash.com/photo-1581636625402-29b2a704ef13?w=500" class="card-img-top" alt="Coca-Cola">
+                            <div class="card-body">
+                                <h5 class="card-title">Coca-Cola</h5>
+                                <p class="card-text">Ice-cold refreshing Coca-Cola.</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="price">৳35</span>
+                                    <button class="btn btn-primary">Order Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card mb-4">
+                            <img src="https://images.unsplash.com/photo-1625772299848-391b6a87d7b3?w=500" class="card-img-top" alt="Shawon's JuiceCola">
+                            <div class="card-body">
+                                <h5 class="card-title">Shawon's JuiceCola</h5>
+                                <p class="card-text">Our signature cola mixed with fresh fruit juice. A unique refreshing experience!</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="price">৳45</span>
+                                    <button class="btn btn-primary">Order Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card mb-4">
+                            <img src="https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=500" class="card-img-top" alt="Fresh Orange Juice">
+                            <div class="card-body">
+                                <h5 class="card-title">Fresh Orange Juice</h5>
+                                <p class="card-text">Freshly squeezed orange juice, rich in vitamin C.</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="price">৳120</span>
+                                    <button class="btn btn-primary">Order Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card mb-4">
+                            <img src="https://images.unsplash.com/photo-1603569283847-aa295f0d016a?w=500" class="card-img-top" alt="Watermelon Juice">
+                            <div class="card-body">
+                                <h5 class="card-title">Watermelon Juice</h5>
+                                <p class="card-text">Sweet and refreshing watermelon juice.</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="price">৳110</span>
+                                    <button class="btn btn-primary">Order Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card mb-4">
+                            <img src="https://images.unsplash.com/photo-1626201850129-a96d527a6d14?w=500" class="card-img-top" alt="Pistachio Shake">
+                            <div class="card-body">
+                                <h5 class="card-title">Pistachio Special</h5>
+                                <p class="card-text">Creamy pistachio shake with crushed nuts and cream.</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="price">৳200</span>
+                                    <button class="btn btn-primary">Order Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="card mb-4">
+                            <img src="https://images.unsplash.com/photo-1626200419199-391ae4a09d84?w=500" class="card-img-top" alt="Lassi">
+                            <div class="card-body">
+                                <h5 class="card-title">Special Lassi</h5>
+                                <p class="card-text">Traditional yogurt-based drink with nuts and dried fruits.</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <span class="price">৳130</span>
+                                    <button class="btn btn-primary">Order Now</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-5 bg-light">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h2>About Us</h2>
+                    <p>At Shawon's Burger Shop, we're passionate about creating the perfect burger experience. Using only the finest ingredients and time-tested recipes, we ensure every bite is memorable.</p>
+                    <p>Founded in 2020, we've quickly become the neighborhood's favorite burger joint, known for our quality and friendly service.</p>
+                </div>
+                <div class="col-md-6">
+                    <img src="https://images.unsplash.com/photo-1466978913421-dad2ebd01d17?w=500" class="img-fluid rounded" alt="Restaurant Interior">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Reviews Section -->
+    <section id="reviews" class="py-5">
+        <div class="container">
+            <h2 class="text-center mb-5">Customer Reviews</h2>
+            <div class="row">
+                <div class="col-md-8 mx-auto">
+                    <!-- Review Form -->
+                    <div class="card mb-4">
+                        <div class="card-body">
+                            <h5 class="card-title">Share Your Experience</h5>
+                            <form id="reviewForm">
+                                <div class="mb-3">
+                                    <label class="form-label">Rating</label>
+                                    <div class="rating">
+                                        <i class="far fa-star" data-rating="1"></i>
+                                        <i class="far fa-star" data-rating="2"></i>
+                                        <i class="far fa-star" data-rating="3"></i>
+                                        <i class="far fa-star" data-rating="4"></i>
+                                        <i class="far fa-star" data-rating="5"></i>
+                                    </div>
+                                    <input type="hidden" id="ratingValue" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Your Name</label>
+                                    <input type="text" class="form-control" id="reviewName" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Your Review</label>
+                                    <textarea class="form-control" id="reviewText" rows="3" required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Submit Review</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Reviews List -->
+                    <div id="reviewsList">
+                        <!-- Reviews will be dynamically added here -->
+                    </div>
+
+                    <!-- Load More Button -->
+                    <div class="text-center mt-4">
+                        <button id="loadMoreReviews" class="btn btn-outline-primary">Load More Reviews</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="py-5">
+        <div class="container">
+            <!-- Delivery Information -->
+            <div class="row mb-5">
+                <div class="col-12">
+                    <h2 class="text-center mb-4">Delivery Information</h2>
+                    <div class="row">
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-motorcycle display-4 mb-3 text-primary"></i>
+                                    <h4>Fast Delivery</h4>
+                                    <p>We deliver within 30-45 minutes in Chittagong City area</p>
+                                    <p class="text-success font-weight-bold">Free delivery on orders above ৳1000</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-map-marked-alt display-4 mb-3 text-primary"></i>
+                                    <h4>Delivery Areas</h4>
+                                    <ul class="list-unstyled">
+                                        <li>• GEC Circle</li>
+                                        <li>• Agrabad</li>
+                                        <li>• Nasirabad</li>
+                                        <li>• Halishahar</li>
+                                        <li>• And more...</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="card h-100">
+                                <div class="card-body text-center">
+                                    <i class="fas fa-tags display-4 mb-3 text-primary"></i>
+                                    <h4>Delivery Charges</h4>
+                                    <ul class="list-unstyled">
+                                        <li>Within 2km: ৳30</li>
+                                        <li>2-5km: ৳50</li>
+                                        <li>5-8km: ৳70</li>
+                                        <li>Above 8km: ৳100</li>
+                                        <li class="text-success">Free over ৳1000</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-center mb-5">Contact Us</h2>
+            <div class="row">
+                <div class="col-md-6 mb-4">
+                    <div class="contact-info">
+                        <h3>Visit Us</h3>
+                        <p>123 Burger Street<br>CTG City, Bd 12345</p>
+                        <p>Phone: (+880) 123-4567<br>Email: info@shawonsburgers.com</p>
+                        <h4>Hours</h4>
+                        <p>Monday - Sunday: 11:00 AM - 10:00 PM</p>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <form>
+                        <div class="mb-3">
+                            <input type="text" class="form-control" placeholder="Your Name">
+                        </div>
+                        <div class="mb-3">
+                            <input type="email" class="form-control" placeholder="Your Email">
+                        </div>
+                        <div class="mb-3">
+                            <textarea class="form-control" rows="4" placeholder="Your Message"></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Send Message</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Order Modal -->
+    <div class="modal fade" id="orderModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Place Your Order</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="orderForm">
+                        <div class="mb-3">
+                            <label class="form-label">Name</label>
+                            <input type="text" class="form-control" id="customerName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="customerPhone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Delivery Address</label>
+                            <textarea class="form-control" id="deliveryAddress" rows="3" required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Selected Items</label>
+                            <div id="orderItems" class="list-group mb-3">
+                                <!-- Order items will be added here dynamically -->
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Subtotal:</span>
+                                <span id="subtotal">৳0.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between">
+                                <span>Delivery Fee:</span>
+                                <span id="deliveryFee">৳50.00</span>
+                            </div>
+                            <div class="d-flex justify-content-between fw-bold">
+                                <span>Total:</span>
+                                <span id="totalAmount">৳0.00</span>
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Payment Method</label>
+                            <select class="form-select" id="paymentMethod" required>
+                                <option value="">Select Payment Method</option>
+                                <option value="card">Credit/Debit Card</option>
+                                <option value="bkash">bKash</option>
+                                <option value="nagad">Nagad</option>
+                                <option value="rocket">Rocket</option>
+                                <option value="cash">Cash on Delivery</option>
+                            </select>
+                        </div>
+
+                        <!-- Payment Forms -->
+                        <div id="paymentForms">
+                            <!-- Card Payment Form -->
+                            <div id="cardPaymentForm" class="payment-form" style="display: none;">
+                                <div class="mb-3">
+                                    <label class="form-label">Card Details</label>
+                                    <div id="card-element" class="form-control"></div>
+                                    <div id="card-errors" class="text-danger mt-2"></div>
+                                </div>
+                            </div>
+
+                            <!-- Mobile Payment Forms -->
+                            <div id="mobilePaymentForm" class="payment-form" style="display: none;">
+                                <div class="mb-3">
+                                    <label class="form-label">Mobile Number</label>
+                                    <input type="tel" class="form-control" id="mobileNumber" placeholder="01XXXXXXXXX">
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Transaction ID</label>
+                                    <input type="text" class="form-control" id="transactionId" placeholder="Enter Transaction ID">
+                                </div>
+                                <div class="alert alert-info payment-instructions">
+                                    <h6 class="mb-2">Payment Instructions:</h6>
+                                    <div id="bkashInstructions" style="display: none;">
+                                        <p>Send payment to bKash merchant number: 01712345678</p>
+                                        <ol>
+                                            <li>Dial *247#</li>
+                                            <li>Select "Send Money"</li>
+                                            <li>Enter merchant number: 01712345678</li>
+                                            <li>Enter amount: <span class="payment-amount"></span></li>
+                                            <li>Enter PIN to confirm</li>
+                                            <li>Copy the Transaction ID and paste it above</li>
+                                        </ol>
+                                    </div>
+                                    <div id="nagadInstructions" style="display: none;">
+                                        <p>Send payment to Nagad merchant number: 01712345679</p>
+                                        <ol>
+                                            <li>Open Nagad App</li>
+                                            <li>Select "Send Money"</li>
+                                            <li>Enter merchant number: 01712345679</li>
+                                            <li>Enter amount: <span class="payment-amount"></span></li>
+                                            <li>Confirm payment</li>
+                                            <li>Copy the Transaction ID and paste it above</li>
+                                        </ol>
+                                    </div>
+                                    <div id="rocketInstructions" style="display: none;">
+                                        <p>Send payment to Rocket merchant number: 01712345670</p>
+                                        <ol>
+                                            <li>Dial *322#</li>
+                                            <li>Select "Send Money"</li>
+                                            <li>Enter merchant number: 01712345670</li>
+                                            <li>Enter amount: <span class="payment-amount"></span></li>
+                                            <li>Enter PIN to confirm</li>
+                                            <li>Copy the Transaction ID and paste it above</li>
+                                        </ol>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label">Special Instructions</label>
+                            <textarea class="form-control" id="specialInstructions" rows="2"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-primary" id="placeOrderBtn">Place Order</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Login Modal -->
+    <div class="modal fade" id="loginModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Login</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="loginForm" onsubmit="handleLogin(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="loginEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" id="loginPassword" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Login</button>
+                    </form>
+                    <p class="text-center mt-3">
+                        Don't have an account? 
+                        <a href="#" onclick="$('#loginModal').modal('hide'); showRegisterModal();">Sign Up</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Register Modal -->
+    <div class="modal fade" id="registerModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Create Account</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="registerForm" onsubmit="handleRegister(event)">
+                        <div class="mb-3">
+                            <label class="form-label">Full Name</label>
+                            <input type="text" class="form-control" id="registerName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" id="registerEmail" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Password</label>
+                            <input type="password" class="form-control" id="registerPassword" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Phone Number</label>
+                            <input type="tel" class="form-control" id="registerPhone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Delivery Address</label>
+                            <textarea class="form-control" id="registerAddress" required></textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Create Account</button>
+                    </form>
+                    <p class="text-center mt-3">
+                        Already have an account? 
+                        <a href="#" onclick="$('#registerModal').modal('hide'); showLoginModal();">Login</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4">
+        <div class="container text-center">
+            <p>&copy; 2025 Shawon's Burger Shop. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,563 @@
+/* Global Styles */
+body {
+    font-family: 'Arial', sans-serif;
+    padding-top: 56px;
+}
+
+/* Hero Section */
+.hero {
+    background: linear-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1550547660-d9450f859349?w=1000');
+    background-size: cover;
+    background-position: center;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    color: white;
+}
+
+.hero-content {
+    padding: 20px;
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    margin-bottom: 20px;
+}
+
+.hero p {
+    font-size: 1.5rem;
+    margin-bottom: 30px;
+}
+
+/* Menu Section */
+.card {
+    transition: transform 0.3s ease;
+    margin-bottom: 20px;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.card-img-top {
+    height: 200px;
+    object-fit: cover;
+}
+
+.price {
+    font-size: 1.25rem;
+    font-weight: bold;
+    color: #007bff;
+}
+
+/* About Section */
+#about img {
+    max-height: 400px;
+    object-fit: cover;
+}
+
+/* Contact Section */
+.contact-info {
+    background-color: #f8f9fa;
+    padding: 30px;
+    border-radius: 5px;
+}
+
+/* Form Styles */
+.form-control {
+    margin-bottom: 15px;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+    
+    .hero p {
+        font-size: 1.2rem;
+    }
+}
+
+/* Navigation */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+/* Button Styles */
+.btn-primary {
+    padding: 10px 25px;
+    border-radius: 25px;
+}
+
+/* Special Deals Section */
+.deal-card {
+    border: 2px solid #007bff;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+}
+
+.deal-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+}
+
+.deal-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: #dc3545;
+    color: white;
+    padding: 5px 15px;
+    border-radius: 20px;
+    font-weight: bold;
+}
+
+.deal-price {
+    color: #28a745;
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-left: 10px;
+}
+
+.deal-card s {
+    color: #6c757d;
+    font-size: 1.2rem;
+}
+
+.deal-card .btn {
+    margin-top: 15px;
+    width: 100%;
+}
+
+/* Combo Deals Section */
+.combo-card {
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.combo-card:hover {
+    transform: translateY(-10px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.combo-badge {
+    position: absolute;
+    top: 20px;
+    right: -35px;
+    background: #e74c3c;
+    color: white;
+    padding: 5px 40px;
+    transform: rotate(45deg);
+    font-weight: bold;
+    z-index: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.combo-items {
+    list-style: none;
+    padding: 0;
+    margin: 15px 0;
+}
+
+.combo-items li {
+    padding: 5px 0;
+    color: #555;
+    font-size: 0.95rem;
+}
+
+.combo-items li i {
+    color: #27ae60;
+    margin-right: 8px;
+}
+
+.price-section {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.original-price {
+    text-decoration: line-through;
+    color: #999;
+    font-size: 1.1rem;
+}
+
+.combo-card .price {
+    color: #e74c3c;
+    font-size: 1.4rem;
+    font-weight: bold;
+}
+
+.combo-card .btn {
+    background-color: #e74c3c;
+    border-color: #e74c3c;
+    transition: all 0.3s ease;
+}
+
+.combo-card .btn:hover {
+    background-color: #c0392b;
+    border-color: #c0392b;
+    transform: translateY(-2px);
+}
+
+/* Responsive adjustments for combo deals */
+@media (max-width: 768px) {
+    .combo-card {
+        margin-bottom: 30px;
+    }
+
+    .combo-badge {
+        font-size: 0.9rem;
+        padding: 4px 35px;
+    }
+
+    .combo-items li {
+        font-size: 0.9rem;
+    }
+
+    .original-price {
+        font-size: 1rem;
+    }
+
+    .combo-card .price {
+        font-size: 1.2rem;
+    }
+}
+
+/* Delivery Information Section */
+.delivery-info .card {
+    border: none;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+    height: 100%;
+}
+
+.delivery-info .card:hover {
+    transform: translateY(-5px);
+}
+
+.delivery-info .card i {
+    color: #007bff;
+    margin-bottom: 1rem;
+}
+
+.delivery-info ul li {
+    margin-bottom: 0.5rem;
+    font-size: 1.1rem;
+}
+
+.delivery-info .text-success {
+    font-weight: bold;
+}
+
+/* Order Modal Styles */
+.modal-dialog {
+    max-width: 700px;
+}
+
+.list-group-item {
+    border: 1px solid #e9ecef;
+    margin-bottom: 8px;
+    border-radius: 8px;
+}
+
+.list-group-item h6 {
+    color: #333;
+    margin-bottom: 4px;
+}
+
+.list-group-item small {
+    color: #6c757d;
+}
+
+#orderItems {
+    max-height: 300px;
+    overflow-y: auto;
+    margin-bottom: 15px;
+}
+
+#orderItems::-webkit-scrollbar {
+    width: 8px;
+}
+
+#orderItems::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+#orderItems::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+#orderItems::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+.modal-body .d-flex {
+    padding: 8px 0;
+}
+
+#placeOrderBtn {
+    min-width: 150px;
+}
+
+/* Payment Form Styles */
+#card-element {
+    padding: 12px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: white;
+}
+
+.payment-form {
+    margin-top: 15px;
+    padding: 15px;
+    border: 1px solid #e9ecef;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+}
+
+.payment-instructions {
+    font-size: 0.9rem;
+}
+
+.payment-instructions h6 {
+    color: #0d6efd;
+}
+
+.payment-instructions ol {
+    padding-left: 20px;
+    margin-top: 10px;
+}
+
+.payment-instructions li {
+    margin-bottom: 5px;
+}
+
+.payment-amount {
+    font-weight: bold;
+    color: #198754;
+}
+
+#mobileNumber, #transactionId {
+    font-size: 1rem;
+    padding: 10px;
+}
+
+.alert-info {
+    background-color: #e7f1ff;
+    border-color: #b8daff;
+}
+
+/* Reviews Section */
+.rating {
+    font-size: 24px;
+    color: #ffc107;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.rating i {
+    margin-right: 5px;
+    transition: all 0.2s;
+}
+
+.rating i:hover,
+.rating i.fas {
+    transform: scale(1.1);
+}
+
+.review-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    transition: transform 0.2s;
+}
+
+.review-card:hover {
+    transform: translateY(-5px);
+}
+
+.review-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.review-rating {
+    color: #ffc107;
+    font-size: 18px;
+}
+
+.review-date {
+    color: #6c757d;
+    font-size: 14px;
+}
+
+.review-author {
+    font-weight: 600;
+    color: #333;
+}
+
+.review-text {
+    color: #555;
+    line-height: 1.6;
+}
+
+.review-helpful {
+    margin-top: 15px;
+    font-size: 14px;
+    color: #6c757d;
+}
+
+.review-helpful button {
+    background: none;
+    border: none;
+    color: #007bff;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 5px;
+}
+
+.review-helpful button:hover {
+    text-decoration: underline;
+}
+
+#loadMoreReviews {
+    padding: 10px 30px;
+    border-radius: 20px;
+}
+
+/* Drinks Section Styles */
+.menu-section .card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+}
+
+.menu-section .card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+.menu-section .card img {
+    height: 200px;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.menu-section .card:hover img {
+    transform: scale(1.05);
+}
+
+.menu-section .card-body {
+    padding: 1.5rem;
+}
+
+.menu-section .card-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+.menu-section .card-text {
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.menu-section .price {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #28a745;
+}
+
+.size-options {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 10px;
+}
+
+.size-options .form-check {
+    margin-bottom: 0.5rem;
+}
+
+.size-options .form-check-label {
+    font-size: 1rem;
+    color: #495057;
+}
+
+.size-options .form-check-input:checked + .form-check-label {
+    color: #28a745;
+    font-weight: 600;
+}
+
+/* Size Selection Modal */
+#sizeModal .list-group-item {
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+#sizeModal .list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+#sizeModal .badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 0.75rem;
+}
+
+/* Drink Categories */
+.menu-section h3 {
+    color: #2c3e50;
+    font-weight: 700;
+    position: relative;
+    padding-bottom: 10px;
+    margin-bottom: 30px;
+}
+
+.menu-section h3::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 3px;
+    background-color: #e74c3c;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .menu-section .card-img-top {
+        height: 160px;
+    }
+    
+    .menu-section .card-title {
+        font-size: 1.1rem;
+    }
+    
+    .menu-section .price {
+        font-size: 1.1rem;
+    }
+}
+
+/* Footer */
+footer {
+    margin-top: 50px;
+}
