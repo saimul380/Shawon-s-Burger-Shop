@@ -36,11 +36,25 @@ function showRegisterModal() {
 // Handle login form submission
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const email = document.getElementById('loginEmail').value;
+    
+    // Get form values
+    const email = document.getElementById('loginEmail').value.trim();
     const password = document.getElementById('loginPassword').value;
     
+    // Validate input
+    if (!email || !password) {
+        alert('Please enter both email and password');
+        return;
+    }
+    
+    // Show loading state
+    const submitBtn = e.target.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Logging in...';
+    
     try {
-        console.log('Login attempt with:', { email, passwordLength: password?.length });
+        console.log('Attempting login with:', { email, passwordLength: password.length });
         
         const response = await fetch('/api/auth/login', {
             method: 'POST',
@@ -51,29 +65,38 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         const data = await response.json();
         
         if (!response.ok) {
-            console.error('Server rejected login:', data);
+            console.error('Login failed:', data);
             throw new Error(data.error || 'Login failed');
         }
         
         console.log('Login successful:', data);
+        
+        // Store auth data
         authToken = data.token;
         currentUser = data.user;
         localStorage.setItem('authToken', authToken);
         
+        // Update UI
         updateAuthUI();
         if (currentUser.role === 'admin') {
             showAdminPanel();
         }
         
+        // Close modal
         const loginModal = bootstrap.Modal.getInstance(document.getElementById('loginModal'));
         if (loginModal) {
             loginModal.hide();
         }
         
+        // Show success message
         alert('Welcome back, ' + currentUser.name + '!');
     } catch (error) {
         console.error('Login error:', error);
         alert(error.message || 'Login failed. Please check your credentials.');
+    } finally {
+        // Reset button state
+        submitBtn.disabled = false;
+        submitBtn.textContent = originalText;
     }
 });
 

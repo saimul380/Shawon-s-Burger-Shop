@@ -35,53 +35,55 @@ router.post('/register', async (req, res) => {
 router.post('/login', async (req, res) => {
     try {
         const { email, password } = req.body;
-        console.log('Login attempt:', { email, passwordProvided: !!password });
+        console.log('Login attempt with:', { email, passwordLength: password?.length });
         
+        // Input validation
         if (!email || !password) {
-            return res.status(400).json({ 
-                error: 'Email and password are required',
-                received: { emailProvided: !!email, passwordProvided: !!password }
-            });
+            return res.status(400).json({ error: 'Email and password are required' });
         }
         
+        // Find user by email
         const user = await User.findOne({ email });
         
         if (!user) {
-            console.log(`User not found: ${email}`);
+            console.log(`User not found with email: ${email}`);
             return res.status(401).json({ error: 'Invalid email or password' });
         }
         
         console.log('User found, comparing password...');
         
-        // Try direct bcrypt compare instead of using the model method
+        // Use direct bcrypt comparison
         const bcrypt = require('bcryptjs');
         const isMatch = await bcrypt.compare(password, user.password);
         
         if (!isMatch) {
-            console.log('Password comparison failed');
-            return res.status(401).json({ 
-                error: 'Invalid email or password',
-                message: 'Password does not match'
-            });
+            console.log('Password comparison failed for user:', email);
+            return res.status(401).json({ error: 'Invalid email or password' });
         }
         
-        console.log('Login successful, generating token...');
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
-        res.json({ 
-            token, 
-            user: { 
-                id: user._id, 
-                name: user.name, 
-                email, 
-                role: user.role 
-            } 
+        console.log('Login successful for user:', email);
+        
+        // Generate JWT token
+        const token = jwt.sign(
+            { userId: user._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+        
+        // Send successful response
+        res.json({
+            success: true,
+            token,
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
         });
     } catch (error) {
         console.error('Login error:', error);
-        res.status(400).json({ 
-            error: error.message,
-            stack: error.stack
-        });
+        res.status(500).json({ error: 'Server error during login' });
     }
 });
 

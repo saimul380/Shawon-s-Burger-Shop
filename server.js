@@ -103,59 +103,156 @@ app.get('/test-admin-login', async (req, res) => {
         const User = require('./models/User');
         const bcrypt = require('bcryptjs');
         
-        // 1. Check if admin exists
+        // First try to find the admin
         let admin = await User.findOne({ email: 'admin@shawonburger.com' });
         
-        if (!admin) {
-            // Create admin if doesn't exist
-            const hashedPassword = await bcrypt.hash('admin123', 10);
-            admin = await User.create({
-                name: 'Admin',
-                email: 'admin@shawonburger.com',
-                password: hashedPassword,
-                phone: '123456789',
-                address: 'Admin Office',
-                role: 'admin'
-            });
-            console.log('Admin created for testing');
-        } else {
-            // Update admin password for testing
-            admin.password = await bcrypt.hash('admin123', 10);
-            await admin.save();
-            console.log('Admin password updated for testing');
+        if (admin) {
+            // Delete the existing admin user to create fresh
+            await User.deleteOne({ email: 'admin@shawonburger.com' });
+            console.log('Deleted existing admin user');
         }
         
-        // 2. Test login
-        const jwt = require('jsonwebtoken');
+        // Create a fresh admin user
+        const hashedPassword = await bcrypt.hash('admin123', 10);
+        admin = new User({
+            name: 'Admin',
+            email: 'admin@shawonburger.com',
+            password: hashedPassword,
+            phone: '123456789',
+            address: 'Admin Office',
+            role: 'admin'
+        });
+        
+        // Save the new admin user
+        await admin.save();
+        console.log('Created fresh admin account');
+            
+        // Test login with direct bcrypt
         const isMatch = await bcrypt.compare('admin123', admin.password);
         
-        if (isMatch) {
-            const token = jwt.sign({ userId: admin._id }, process.env.JWT_SECRET);
-            return res.json({ 
-                success: true, 
-                message: 'Admin login successful',
+        // Generate JWT token
+        const jwt = require('jsonwebtoken');
+        const token = jwt.sign({ userId: admin._id }, process.env.JWT_SECRET);
+        
+        return res.json({ 
+            success: true, 
+            message: 'Admin user recreated successfully',
+            passwordMatch: isMatch,
+            testLogin: {
+                email: 'admin@shawonburger.com',
+                password: 'admin123'
+            },
+            token
+        });
+    } catch (error) {
+        console.error('Test admin creation error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Test admin creation failed', 
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
+// Special route for manual login tests
+app.post('/test-manual-login', async (req, res) => {
+    try {
+        const { email, password } = req.body;
+        console.log('Manual login attempt:', { email, passwordLength: password?.length });
+        
+        const User = require('./models/User');
+        const bcrypt = require('bcryptjs');
+        const user = await User.findOne({ email });
+        
+        if (!user) {
+            return res.status(401).json({ 
+                error: 'User not found',
+                email
+            });
+        }
+        
+        // Try both comparison methods
+        const manualCompare = await bcrypt.compare(password, user.password);
+        const modelCompare = await user.comparePassword(password);
+        
+        if (manualCompare) {
+            const jwt = require('jsonwebtoken');
+            const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET);
+            
+            res.json({
+                success: true,
                 token,
-                user: {
-                    id: admin._id,
-                    name: admin.name,
-                    email: admin.email,
-                    role: admin.role
+                user: { 
+                    id: user._id, 
+                    name: user.name,
+                    email,
+                    role: user.role
                 }
             });
         } else {
-            return res.json({ 
-                success: false, 
-                message: 'Password comparison failed',
-                plainPassword: 'admin123',
-                hashedPassword: admin.password
+            res.status(401).json({
+                error: 'Invalid password',
+                manualCompare,
+                modelCompare,
+                providedPassword: password,
+                hashedPassword: user.password
             });
         }
     } catch (error) {
-        console.error('Test login error:', error);
-        res.status(500).json({ 
-            success: false, 
-            message: 'Test login failed', 
-            error: error.message 
+        console.error('Manual login error:', error);
+        res.status(500).json({
+            error: error.message,
+            stack: error.stack
+        });
+    }
+});
+
+// Create test user route
+app.get('/create-test-user', async (req, res) => {
+    try {
+        const User = require('./models/User');
+        const bcrypt = require('bcryptjs');
+        
+        const email = 'test@example.com';
+        const hashedPassword = await bcrypt.hash('password123', 10);
+        
+        // Check if user exists
+        let user = await User.findOne({ email });
+        
+        if (user) {
+            // Update password
+            user = await User.findOneAndUpdate(
+                { email },
+                { password: hashedPassword },
+                { new: true }
+            );
+        } else {
+            // Create new user
+            user = await User.create({
+                name: 'Test User',
+                email,
+                password: hashedPassword,
+                phone: '123456789',
+                address: 'Test Address',
+                role: 'user'
+            });
+        }
+        
+        res.json({
+            success: true,
+            message: 'Test user created/updated',
+            loginInfo: {
+                email: 'test@example.com',
+                password: 'password123'
+            }
+        });
+    } catch (error) {
+        console.error('Create test user error:', error);
+        res.status(500).json({
+            success: false,
+            error: error.message,
+            stack: error.stack
         });
     }
 });
