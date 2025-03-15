@@ -7,7 +7,7 @@ const authRoutes = require('./routes/auth');
 const orderRoutes = require('./routes/orders');
 const adminRoutes = require('./routes/admin');
 const reviewRoutes = require('./routes/reviews');
-const User = require('./models/User'); // Assuming User model is defined in this file
+const User = require('./models/User');
 
 const app = express();
 
@@ -16,29 +16,26 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(path.join(__dirname)));
 
-// Create temp directory for exports
+// Create temp directory for exports if it doesn't exist
 const fs = require('fs');
 const tempDir = path.join(__dirname, 'temp');
 if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
 
-// Create admin user if not exists
+// Create admin user function
 async function createAdminUser() {
     try {
-        const adminEmail = 'admin@shawonburger.com';
-        const existingAdmin = await User.findOne({ email: adminEmail });
-        
-        if (!existingAdmin) {
-            const adminUser = new User({
+        const adminExists = await User.findOne({ email: 'admin@shawonburger.com' });
+        if (!adminExists) {
+            const bcrypt = require('bcryptjs');
+            const hashedPassword = await bcrypt.hash('admin123', 10);
+            await User.create({
                 name: 'Admin',
-                email: adminEmail,
-                password: 'admin123',
-                phone: '+880123456789',
-                address: 'GEC Circle, Chittagong',
+                email: 'admin@shawonburger.com',
+                password: hashedPassword,
                 role: 'admin'
             });
-            await adminUser.save();
             console.log('Admin user created successfully');
         }
     } catch (error) {
@@ -46,16 +43,30 @@ async function createAdminUser() {
     }
 }
 
-// Database connection
-mongoose.connect(process.env.MONGODB_URI || 'mongodb://localhost:27017/burger-shop', {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(() => {
-    console.log('Connected to MongoDB');
-    createAdminUser(); // Create admin user after connection
-})
-.catch(err => console.error('MongoDB connection error:', err));
+// Database connection with retry logic
+const connectDB = async (retries = 5) => {
+    for (let i = 0; i < retries; i++) {
+        try {
+            await mongoose.connect(process.env.MONGODB_URI, {
+                useNewUrlParser: true,
+                useUnifiedTopology: true
+            });
+            console.log('Connected to MongoDB');
+            await createAdminUser();
+            return;
+        } catch (err) {
+            console.error(`MongoDB connection attempt ${i + 1} failed:`, err);
+            if (i === retries - 1) throw err;
+            await new Promise(resolve => setTimeout(resolve, 5000)); // Wait 5 seconds before retrying
+        }
+    }
+};
+
+// Connect to database
+connectDB().catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -67,7 +78,7 @@ app.use((err, req, res, next) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/orders', orderRoutes);
 app.use('/api/admin', adminRoutes);
-app.use('/api', reviewRoutes); // Mount review routes
+app.use('/api', reviewRoutes);
 
 // Serve static files
 app.get('/', (req, res) => {
@@ -83,7 +94,8 @@ app.use((req, res) => {
     res.status(404).json({ error: 'Not Found' });
 });
 
+// Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT}`);
 });
