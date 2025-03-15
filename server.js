@@ -97,6 +97,69 @@ app.get('/health', (req, res) => {
     });
 });
 
+// Test route for admin login
+app.get('/test-admin-login', async (req, res) => {
+    try {
+        const User = require('./models/User');
+        const bcrypt = require('bcryptjs');
+        
+        // 1. Check if admin exists
+        let admin = await User.findOne({ email: 'admin@shawonburger.com' });
+        
+        if (!admin) {
+            // Create admin if doesn't exist
+            const hashedPassword = await bcrypt.hash('admin123', 10);
+            admin = await User.create({
+                name: 'Admin',
+                email: 'admin@shawonburger.com',
+                password: hashedPassword,
+                phone: '123456789',
+                address: 'Admin Office',
+                role: 'admin'
+            });
+            console.log('Admin created for testing');
+        } else {
+            // Update admin password for testing
+            admin.password = await bcrypt.hash('admin123', 10);
+            await admin.save();
+            console.log('Admin password updated for testing');
+        }
+        
+        // 2. Test login
+        const jwt = require('jsonwebtoken');
+        const isMatch = await bcrypt.compare('admin123', admin.password);
+        
+        if (isMatch) {
+            const token = jwt.sign({ userId: admin._id }, process.env.JWT_SECRET);
+            return res.json({ 
+                success: true, 
+                message: 'Admin login successful',
+                token,
+                user: {
+                    id: admin._id,
+                    name: admin.name,
+                    email: admin.email,
+                    role: admin.role
+                }
+            });
+        } else {
+            return res.json({ 
+                success: false, 
+                message: 'Password comparison failed',
+                plainPassword: 'admin123',
+                hashedPassword: admin.password
+            });
+        }
+    } catch (error) {
+        console.error('Test login error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Test login failed', 
+            error: error.message 
+        });
+    }
+});
+
 // Serve static files
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
