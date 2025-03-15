@@ -25,16 +25,28 @@ if (!fs.existsSync(tempDir)) {
     fs.mkdirSync(tempDir);
 }
 
+// Log environment
+console.log('Starting server with environment:', {
+    nodeEnv: process.env.NODE_ENV,
+    port: process.env.PORT,
+    mongoDbConfigured: !!process.env.MONGODB_URI
+});
+
 // Database connection
-mongoose.connect(process.env.MONGODB_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true
-})
-.then(async () => {
-    console.log('Connected to MongoDB');
-    
-    // Create admin user
+const connectToMongoDB = async () => {
     try {
+        if (!process.env.MONGODB_URI) {
+            throw new Error('MONGODB_URI environment variable is not set');
+        }
+
+        // Log sanitized connection string
+        const sanitizedUri = process.env.MONGODB_URI.replace(/(mongodb\+srv:\/\/)([^@]+)(@)/, '$1****$3');
+        console.log('Attempting MongoDB connection with URI:', sanitizedUri);
+
+        await mongoose.connect(process.env.MONGODB_URI);
+        console.log('MongoDB connected successfully');
+
+        // Create admin user
         const adminExists = await User.findOne({ email: 'admin@shawonburger.com' });
         if (!adminExists) {
             const bcrypt = require('bcryptjs');
@@ -47,11 +59,17 @@ mongoose.connect(process.env.MONGODB_URI, {
             });
             console.log('Admin user created successfully');
         }
+
+        return true;
     } catch (error) {
-        console.error('Error creating admin user:', error);
+        console.error('MongoDB connection error:', {
+            message: error.message,
+            name: error.name,
+            stack: error.stack
+        });
+        return false;
     }
-})
-.catch(err => console.error('MongoDB connection error:', err));
+};
 
 // Routes
 app.use('/api/auth', authRoutes);
@@ -61,7 +79,12 @@ app.use('/api', reviewRoutes);
 
 // Health check
 app.get('/health', (req, res) => {
-    res.json({ status: 'ok' });
+    const mongoStatus = mongoose.connection.readyState;
+    res.json({
+        status: 'ok',
+        mongo: ['disconnected', 'connected', 'connecting', 'disconnecting'][mongoStatus],
+        timestamp: new Date().toISOString()
+    });
 });
 
 // Serve static files
@@ -84,12 +107,28 @@ app.use((req, res) => {
 
 // Error handling
 app.use((err, req, res, next) => {
-    console.error('Error:', err);
+    console.error('Server error:', {
+        message: err.message,
+        path: req.path,
+        method: req.method,
+        stack: err.stack
+    });
     res.status(500).json({ error: 'Something went wrong!' });
 });
 
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, '0.0.0.0', () => {
+const server = app.listen(PORT, '0.0.0.0', async () => {
     console.log(`Server running on port ${PORT}`);
+    
+    // Connect to MongoDB after server starts
+    const connected = await connectToMongoDB();
+    if (!connected) {
+        console.error('Failed to connect to MongoDB. Server will continue running but database operations will fail.');
+    }
+});
+
+// Handle server errors
+server.on('error', (err) => {
+    console.error('Server error:', err);
 });
