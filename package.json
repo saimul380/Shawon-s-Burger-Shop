@@ -4,10 +4,12 @@
   "description": "Modern burger shop website with online ordering system",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
+    "build": "mkdir -p temp"
   },
   "engines": {
-    "node": "18.x"
+    "node": "18.x",
+    "npm": "9.x"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
