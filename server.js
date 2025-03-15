@@ -4,10 +4,6 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const path = require('path');
 const compression = require('compression');
-const authRoutes = require('./routes/auth');
-const orderRoutes = require('./routes/orders');
-const adminRoutes = require('./routes/admin');
-const reviewRoutes = require('./routes/reviews');
 
 // Start with just loading the Express app
 const app = express();
@@ -32,11 +28,45 @@ console.log('Starting server with environment:', {
     mongoDbConfigured: !!process.env.MONGODB_URI
 });
 
-// Set up API routes immediately (don't wait for DB connection)
-app.use('/api/auth', authRoutes);
-app.use('/api/orders', orderRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api', reviewRoutes);
+// Global error handler for all route handlers
+const safeHandler = (fn) => async (req, res, next) => {
+    try {
+        await fn(req, res, next);
+    } catch (error) {
+        console.error('Route handler error:', {
+            path: req.path,
+            method: req.method,
+            error: error.message
+        });
+        res.status(500).json({ 
+            error: 'Server error', 
+            message: 'Operation failed',
+            details: process.env.NODE_ENV === 'development' ? error.message : undefined
+        });
+    }
+};
+
+// Set up minimal API routes that work without DB
+app.use('/api/auth', (req, res) => {
+    res.status(503).json({ 
+        error: 'Service Unavailable', 
+        message: 'Authentication services temporarily unavailable' 
+    });
+});
+
+app.use('/api/orders', (req, res) => {
+    res.status(503).json({ 
+        error: 'Service Unavailable', 
+        message: 'Order services temporarily unavailable' 
+    });
+});
+
+app.use('/api/admin', (req, res) => {
+    res.status(503).json({ 
+        error: 'Service Unavailable', 
+        message: 'Admin services temporarily unavailable' 
+    });
+});
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -47,6 +77,7 @@ app.get('/health', (req, res) => {
         status: 'ok',
         server: 'running',
         mongo: statusNames[mongoStatus] || 'unknown',
+        routes: 'minimal',
         timestamp: new Date().toISOString()
     });
 });
@@ -89,7 +120,9 @@ const server = app.listen(PORT, '0.0.0.0', () => {
     connectToMongoDB()
         .then(isConnected => {
             if (isConnected) {
-                console.log('MongoDB connected successfully - all features are available');
+                console.log('MongoDB connected successfully - enabling full API functionality');
+                // Only enable real routes after DB connection
+                setupFullRoutes();
             } else {
                 console.log('Server running with limited functionality (no database connection)');
             }
@@ -103,6 +136,34 @@ const server = app.listen(PORT, '0.0.0.0', () => {
 server.on('error', (err) => {
     console.error('Server error:', err);
 });
+
+// Replace placeholder routes with real ones after DB connection
+function setupFullRoutes() {
+    try {
+        // Remove placeholder routes
+        app._router.stack = app._router.stack.filter(layer => {
+            return !(layer.route && 
+                (layer.route.path === '/api/auth' || 
+                 layer.route.path === '/api/orders' || 
+                 layer.route.path === '/api/admin'));
+        });
+        
+        // Add real routes
+        const authRoutes = require('./routes/auth');
+        const orderRoutes = require('./routes/orders');
+        const adminRoutes = require('./routes/admin');
+        const reviewRoutes = require('./routes/reviews');
+        
+        app.use('/api/auth', authRoutes);
+        app.use('/api/orders', orderRoutes);
+        app.use('/api/admin', adminRoutes);
+        app.use('/api', reviewRoutes);
+        
+        console.log('Full API routes enabled successfully');
+    } catch (error) {
+        console.error('Error setting up full routes:', error.message);
+    }
+}
 
 // Database connection function
 async function connectToMongoDB() {
